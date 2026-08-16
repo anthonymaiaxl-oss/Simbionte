@@ -40,13 +40,13 @@ export function ConversaAberta({
   const campo = useRef<HTMLTextAreaElement>(null);
   const proximoId = useRef(1);
 
-  // Ao trocar de conversa, recomeça: histórico, rascunho e o modo de
+  // Ao trocar de conversa tudo recomeça — histórico, rascunho e modo de
   // atendimento são daquela conversa, não do painel.
-  useEffect(() => {
-    setMensagens(conversa.mensagens);
-    setAssumido(false);
-    setTexto("");
-  }, [conversa]);
+  //
+  // Isso é feito remontando o componente pela `key` no pai, e não com um
+  // efeito que chama setState: setState no corpo de um efeito dispara um
+  // render em cascata. Trocar a key é a forma que o React recomenda para
+  // "reiniciar estado quando uma prop muda".
 
   useEffect(() => {
     fim.current?.scrollIntoView({ block: "end" });

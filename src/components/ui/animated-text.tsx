@@ -32,7 +32,10 @@ const AnimatedText = React.forwardRef<HTMLDivElement, AnimatedTextProps>(
       className,
       textClassName,
       underlineClassName,
-      as: Component = "h1",
+      // `as` continua aceito para não quebrar quem já passa a prop, mas
+      // não é usado: o elemento semântico é escolhido por quem chama, e
+      // este componente só desenha as letras dentro dele.
+      as: _as,
       underlineGradient = "from-simbionte via-pulso to-simbionte",
       underlineHeight = "h-1",
       underlineOffset = "-bottom-2",

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useReducedMotion } from "motion/react";
 import { Agente } from "@/components/agente";
 import { Contatos } from "@/components/contatos";
 import { ConversaAberta } from "@/components/conversa-aberta";
@@ -99,7 +100,11 @@ function Conversas() {
   if (aberta) {
     return (
       <div id="painel-conversas" role="tabpanel">
+        {/* A key remonta o componente ao trocar de conversa: e com isso
+            historico, rascunho e modo de atendimento recomecam sem
+            precisar de um efeito chamando setState. */}
         <ConversaAberta
+          key={aberta.id}
           conversa={aberta}
           pausado={pausados[aberta.id]}
           aoPausar={(v) => setPausados((p) => ({ ...p, [aberta.id]: v }))}
@@ -273,16 +278,20 @@ const CARTOES: { chave: keyof typeof NUMEROS; rotulo: string; alerta?: boolean }
   ];
 
 /**
- * N�mero que sobe at� o valor.
+ * Número que sobe até o valor.
  *
- * Sempre termina no valor exato � a anima��o � enfeite, o dado n�o pode
+ * Sempre termina no valor exato — a animação é enfeite, o dado não pode
  * depender dela. Com movimento reduzido, aparece direto.
  */
 function Contador({ ate }: { ate: number }) {
-  const [valor, setValor] = useState(ate);
+  const semMovimento = useReducedMotion();
+
+  // Começa em 0 já no render. Nenhum setState no corpo do efeito: isso
+  // dispara render em cascata, e valor inicial é assunto do render.
+  const [valor, setValor] = useState(0);
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (semMovimento) return;
 
     const duracao = 900;
     const inicio = performance.now();
@@ -290,18 +299,18 @@ function Contador({ ate }: { ate: number }) {
 
     const passo = (agora: number) => {
       const t = Math.min((agora - inicio) / duracao, 1);
-      // desacelera no fim: sobe r�pido e assenta
+      // desacelera no fim: sobe rápido e assenta
       const suave = 1 - Math.pow(1 - t, 3);
       setValor(Math.round(ate * suave));
       if (t < 1) frame = requestAnimationFrame(passo);
     };
 
-    setValor(0);
     frame = requestAnimationFrame(passo);
     return () => cancelAnimationFrame(frame);
-  }, [ate]);
+  }, [ate, semMovimento]);
 
-  return <>{valor}</>;
+  // Sem movimento o número aparece pronto, sem passar por estado nenhum.
+  return <>{semMovimento ? ate : valor}</>;
 }
 
 function Numeros() {

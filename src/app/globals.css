@@ -453,14 +453,14 @@ body::after {
 */
 @keyframes irradiar {
   0% {
-    transform: translate3d(-50%, -50%, 0) scale(0.28) rotate(var(--giro));
+    transform: translate3d(-50%, -50%, 0) scale(0.62) rotate(var(--giro));
     opacity: 0;
   }
-  16% {
-    opacity: 0.3;
+  14% {
+    opacity: 0.42;
   }
-  72% {
-    opacity: 0.17;
+  74% {
+    opacity: 0.26;
   }
   100% {
     transform:
