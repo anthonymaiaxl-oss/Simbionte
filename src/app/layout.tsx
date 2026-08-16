@@ -2,17 +2,22 @@ import type { Metadata } from "next";
 import { DM_Sans, Fira_Code, Gabarito, Space_Mono } from "next/font/google";
 import "./globals.css";
 
+/**
+ * Sem `weight` de propósito: Gabarito e DM Sans são fontes variáveis.
+ * Pedir pesos fixos faz o Next gerar um arquivo estático por peso e por
+ * conjunto de caracteres — foi o que quebrou o build da Vercel, com um
+ * erro por arquivo. No eixo variável é um arquivo só, e todos os pesos
+ * continuam disponíveis.
+ */
 const gabarito = Gabarito({
   variable: "--fonte-gabarito",
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
   display: "swap",
 });
 
 const dmSans = DM_Sans({
   variable: "--fonte-dm-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "700"],
   display: "swap",
 });
 
