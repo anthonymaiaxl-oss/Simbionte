@@ -1765,3 +1765,36 @@ html.lenis body {
 .agente { margin-inline: auto; }
 
 .numeros { justify-content: center; }
+/* ===============================================================
+   TELA DE ENTRADA
+   Tailwind v4 configura por CSS, entao as animacoes do componente
+   (ripple e orbita) vivem aqui, nao num tailwind.config.js.
+   =============================================================== */
+@keyframes ripple {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50%      { transform: translate(-50%, -50%) scale(0.92); }
+}
+
+.anima-ripple {
+  animation: ripple 3s ease-in-out infinite;
+}
+
+/* O contra-giro no fim mantem o icone em pe enquanto a orbita gira. */
+@keyframes orbita {
+  from {
+    transform: rotate(0deg) translateY(calc(var(--radius) * 1px)) rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg) translateY(calc(var(--radius) * 1px)) rotate(-360deg);
+  }
+}
+
+.anima-orbita {
+  animation: orbita calc(var(--duration) * 1s) linear infinite;
+  animation-delay: calc(var(--delay) * 1000ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anima-ripple,
+  .anima-orbita { animation: none; }
+}

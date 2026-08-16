@@ -1,3 +1,4 @@
+import { sair } from "@/app/acoes-auth";
 import { ChatSimbionte } from "@/components/chat-simbionte";
 import { FaixaEstado } from "@/components/faixa-estado";
 import { FundoHero } from "@/components/fundo-hero";
@@ -16,9 +17,14 @@ export default function Home() {
           Simbionte
         </span>
 
-        {/* Painel, não site de venda: aqui vai a conta de quem entrou.
-            Placeholder até existir sessão neste projeto. */}
-        <span className="rotulo">Painel</span>
+        <form action={sair}>
+          <button
+            type="submit"
+            className="h-11 cursor-pointer rounded-full border border-borda px-5 text-sm text-bruma transition-colors hover:border-falha/50 hover:text-marfim"
+          >
+            Sair
+          </button>
+        </form>
       </header>
 
       <main>
