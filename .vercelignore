@@ -1,0 +1,8 @@
+# Scripts de preparação de assets (recorte dos quadros, detecção dos
+# olhos, diagnóstico). Rodam na minha máquina, nunca no servidor —
+# subir só faria a Vercel processar arquivo à toa.
+scripts/
+
+# Sobras de build e edição
+*.bak
+tsconfig.tsbuildinfo

@@ -1,26 +1,1767 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+/* --- */
+/* --- */
+/* --- */
+/* --- */
+/* --- */
+
+@theme {
+  --color-breu: #040507;
+  --color-superficie: #0b0f14;
+  --color-superficie-alta: #121820;
+  --color-borda: #1a2430;
+
+  --color-marfim: #f4f7fa;
+  --color-bruma: #98a6b5;
+
+  --color-simbionte: #16a34a;
+  --color-simbionte-claro: #22c55e;
+  --color-pulso: #4ade80;
+  --color-alerta: #f59e0b;
+  --color-falha: #ef4444;
+}
+
+/* O site inteiro roda no tema escuro; realinho os tokens do shadcn
+   para a paleta da marca em vez de manter dois temas paralelos. */
+:root {
+  --background: #040507;
+  --foreground: #f4f7fa;
+  --card: #0b0f14;
+  --card-foreground: #f4f7fa;
+  --popover: #0b0f14;
+  --popover-foreground: #f4f7fa;
+  --primary: #16a34a;
+  --primary-foreground: #040507;
+  --secondary: #121820;
+  --secondary-foreground: #f4f7fa;
+  --muted: #121820;
+  --muted-foreground: #98a6b5;
+  --accent: #121820;
+  --accent-foreground: #f4f7fa;
+  --destructive: #ef4444;
+  --border: #1a2430;
+  --input: #1a2430;
+  --ring: #4ade80;
+  --radius: 0.75rem;
+}
+
+@layer base {
+  html {
+    /* Sem smooth aqui: quem suaviza a rolagem agora Ãƒ€ƒâ€ Ã¢¬¢Ãƒ¢¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢Ãƒ€ƒÂ¢Ã¢â€šÂ¬ e e e Ã¢¬¢Ãƒ¢¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€že Ãƒ€ƒâ€ e Ã¢¬¢Ãƒ¢¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢Ãƒ€ƒÂ¢Ã¢â€šÂ¬ e e Ã¢¬¢Ãƒ¢¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€že e o Lenis. Manter
+       os dois faz navegador e biblioteca animarem a mesma rolagem ao
+       mesmo tempo, e o resultado engasga. */
+    scroll-behavior: auto;
+  }
+
+  body {
+    background-color: var(--color-breu);
+    color: var(--color-marfim);
+    font-family: var(--fonte-dm-sans), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--fonte-gabarito), ui-sans-serif, system-ui, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-pulso);
+    outline-offset: 3px;
+    border-radius: 6px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+/* --- */
+  .rotulo {
+    font-family: var(--fonte-fira-code), ui-monospace, monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-bruma);
+  }
 }
+
+/* --- */
+/* --- */
+/* --- */
+/* --- */
+/* --- */
+.mascara-mascote {
+  -webkit-mask-image: radial-gradient(
+    circle at 50% 50%,
+    #000 52%,
+    transparent 76%
+  );
+  mask-image: radial-gradient(circle at 50% 50%, #000 52%, transparent 76%);
+}
+
+/* --- */
+/* --- */
+.mascara-bubble {
+  -webkit-mask-image: radial-gradient(
+    circle at 50% 50%,
+    #000 60%,
+    transparent 71%
+  );
+  mask-image: radial-gradient(circle at 50% 50%, #000 60%, transparent 71%);
+}
+
+@keyframes respiro {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.anima-respiro {
+  animation: respiro 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .anima-respiro {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* --- */
+/* --- */
+@keyframes piscar {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95%           { transform: scaleY(0.08); }
+  97%           { transform: scaleY(1); }
+}
+
+.anima-piscar {
+  animation: piscar 6.5s ease-in-out infinite;
+/* --- */
+  animation-composition: add;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anima-piscar { animation: none; }
+}
+
+/* --- */
+/* --- */
+/* --- */
+@keyframes fluir {
+  from { background-position: 200% 50%; }
+  to   { background-position: -100% 50%; }
+}
+
+.fluxo-verde {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-marfim) 0%,
+    var(--color-marfim) 36%,
+    var(--color-simbionte) 43%,
+    var(--color-pulso) 48%,
+    #c9fb7e 51%,
+    var(--color-pulso) 54%,
+    var(--color-simbionte) 59%,
+    var(--color-marfim) 66%,
+    var(--color-marfim) 100%
+  );
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: fluir 7s linear infinite;
+}
+
+/* Sem movimento: para a onda no meio do nome em vez de sumir com
+/* --- */
+@media (prefers-reduced-motion: reduce) {
+  .fluxo-verde {
+    animation: none;
+    background-position: 50% 50%;
+  }
+}
+
+
+
+
+
+/* -- Mascote por sequencia de quadros ---------------------------
+   Os WebP ja vem com alfa: o robo fica direto sobre a pagina.
+   Fica no fluxo normal da Hero e rola junto com ela.               */
+.robo-palco {
+  position: relative;
+  width: min(30vw, 330px, 42vh);
+  aspect-ratio: 781 / 632;
+  margin-inline: auto;
+  opacity: 0;
+}
+
+/* So aparece com os 58 quadros em memoria. Opacidade direta: nunca
+   fazer a visibilidade depender de uma animacao rodar. */
+.robo-palco--pronto {
+  opacity: 1;
+}
+
+.robo-camada {
+  position: absolute;
+  inset: 0;
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.robo-quadro {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Palpebra: desce do topo do olho. A cor e a do visor, para o olho
+   sumir dentro dele em vez de virar um retangulo escuro colado. */
+.robo-palpebra {
+  position: absolute;
+  background: #0a0c0c;
+  border-radius: 45%;
+  transform: scaleY(0);
+  transform-origin: 50% 0%;
+  transition: transform 90ms cubic-bezier(0.4, 0, 0.6, 1);
+  pointer-events: none;
+}
+
+.robo-palpebra--fechada {
+  transform: scaleY(1);
+}
+
+@media (max-width: 767px) {
+  .robo-palco { width: min(58vw, 280px, 40vh); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .robo-camada { transition: none; transform: none !important; }
+  .robo-palpebra { transition: none; transform: scaleY(0) !important; }
+}
+
+/* ===============================================================
+   RUIDO E BRILHO DE FUNDO
+   =============================================================== */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23r)' opacity='0.32'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(
+    58% 46% at 50% 34%,
+    rgba(22, 163, 74, 0.13) 0%,
+    transparent 70%
+  );
+}
+
+/* ===============================================================
+   DETALHES VIVOS NO FUNDO DA HERO
+   =============================================================== */
+.fundo-hero {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  /* Mascara centrada na origem do fluxo (atras do robo), nao no meio da
+     Hero: senao as marcas que sobem apagariam cedo demais. */
+  -webkit-mask-image: radial-gradient(96% 90% at 50% 45%, #000 34%, transparent 100%);
+  mask-image: radial-gradient(96% 90% at 50% 45%, #000 34%, transparent 100%);
+}
+
+.fundo-hero__marca {
+  position: absolute;
+  left: 50%;
+  /* Origem atras do ROBO. 43% e a altura da cabeca dele dentro da Hero:
+     medido, nao chutado. A Hero inclui o chat embaixo, entao o meio dela
+     (50%) ja cai abaixo do robo ÃƒÂ¢Ã¢â€šÂ¬Ã¢¬Â foi o erro da tentativa anterior. */
+  top: 43%;
+  font-family: var(--fonte-space-mono), ui-monospace, monospace;
+  font-weight: 400;
+  color: var(--color-pulso);
+  white-space: nowrap;
+  letter-spacing: 0.06em;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation-name: irradiar;
+  animation-timing-function: cubic-bezier(0.16, 0.62, 0.36, 1);
+  animation-iteration-count: infinite;
+}
+
+/*
+  Todos nascem no mesmo ponto, atras do nome, e viajam para fora.
+  O -50%/-50% mantem o elemento centrado no proprio ponto de origem
+  enquanto ele cresce; sem isso ele cresceria so para a direita e para
+  baixo. O easing e desacelerado: sai rapido de tras do texto e vai
+  perdendo velocidade ate a borda, que e o que faz parecer fluxo em vez
+  de esteira constante.
+*/
+@keyframes irradiar {
+  0% {
+    transform: translate3d(-50%, -50%, 0) scale(0.28) rotate(var(--giro));
+    opacity: 0;
+  }
+  16% {
+    opacity: 0.3;
+  }
+  72% {
+    opacity: 0.17;
+  }
+  100% {
+    transform:
+      rotate(var(--giro));
+    opacity: 0;
+  }
+}
+/* ===============================================================
+   CAMADAS DO PARALLAX NA HERO
+   =============================================================== */
+.hero {
+  position: relative;
+  isolation: isolate;
+}
+
+.hero > [data-camada="fundo"] {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero > *:not([data-camada="fundo"]) {
+  position: relative;
+  z-index: 1;
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* ===============================================================
+   CONVERSA COM O SIMBIONTE
+   =============================================================== */
+.chat {
+  width: 100%;
+  max-width: 44rem;
+  margin-inline: auto;
+}
+
+.chat__caixa {
+  border: 1px solid var(--color-borda);
+  border-radius: 26px;
+  background: color-mix(in srgb, var(--color-superficie) 88%, transparent);
+  backdrop-filter: blur(14px);
+  padding: 0.55rem 0.6rem 0.55rem 0.75rem;
+  transition: border-color 220ms ease, box-shadow 220ms ease;
+}
+
+.chat__caixa:focus-within {
+  border-color: color-mix(in srgb, var(--color-simbionte) 70%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-simbionte) 14%, transparent);
+}
+
+.chat__linha {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chat__acao,
+.chat__enviar {
+  display: grid;
+  place-items: center;
+  height: 44px;
+  width: 44px;
+  flex: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 200ms ease, color 200ms ease, opacity 200ms ease;
+}
+
+.chat__acao { color: var(--color-bruma); }
+
+.chat__acao:hover {
+  background: var(--color-superficie-alta);
+  color: var(--color-marfim);
+}
+
+.chat__acao svg,
+.chat__enviar svg,
+.chat__faisca svg {
+  width: 20px;
+  height: 20px;
+}
+
+.chat__faisca {
+  display: grid;
+  place-items: center;
+  height: 28px;
+  width: 28px;
+  flex: none;
+  color: var(--color-pulso);
+}
+
+.chat__campo {
+  flex: 1;
+  min-width: 0;
+  resize: none;
+  border: 0;
+  background: transparent;
+  color: var(--color-marfim);
+  font-size: 1rem;
+  line-height: 1.5;
+  padding: 0.6rem 0;
+  max-height: 8rem;
+  outline: none;
+}
+
+.chat__campo::placeholder { color: var(--color-bruma); }
+
+.chat__enviar {
+  background: var(--color-simbionte);
+  color: var(--color-breu);
+}
+
+.chat__enviar:hover:not(:disabled) { background: var(--color-simbionte-claro); }
+
+.chat__enviar:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.chat__anexos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.25rem 0.25rem 0.6rem;
+}
+
+.chat__anexo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--color-borda);
+  border-radius: 999px;
+  padding: 0.25rem 0.3rem 0.25rem 0.7rem;
+  font-size: 0.8125rem;
+  color: var(--color-bruma);
+}
+
+.chat__anexo-nome {
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat__anexo-tirar {
+  display: grid;
+  place-items: center;
+  height: 24px;
+  width: 24px;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--color-bruma);
+}
+
+.chat__anexo-tirar:hover {
+  background: var(--color-superficie-alta);
+  color: var(--color-marfim);
+}
+
+.chat__anexo-tirar svg { width: 13px; height: 13px; }
+
+.chat__sugestoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+
+.chat__sugestao {
+  min-height: 44px;
+  border: 1px solid var(--color-borda);
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: var(--color-bruma);
+  cursor: pointer;
+  transition: border-color 200ms ease, color 200ms ease;
+}
+
+.chat__sugestao:hover {
+  border-color: color-mix(in srgb, var(--color-simbionte) 65%, transparent);
+  color: var(--color-marfim);
+}
+
+/* Sem movimento: as marcas ficam paradas e visiveis em vez de sumirem,
+   ja que a opacidade delas vive dentro do keyframe. */
+@media (prefers-reduced-motion: reduce) {
+  .fundo-hero__marca {
+    animation: none;
+    opacity: 0.18;
+    transform: rotate(var(--giro));
+  }
+}
+
+/* Sem movimento: as marcas param espalhadas, no ponto final do trajeto,
+   em vez de sumirem e a opacidade delas vive dentro do keyframe. */
+@media (prefers-reduced-motion: reduce) {
+  .fundo-hero__marca {
+    animation: none;
+    opacity: 0.18;
+    transform:
+      rotate(var(--giro));
+  }
+}
+
+/* ===============================================================
+   FAIXA DE ESTADO DO AGENTE
+   Uma linha, logo abaixo da Hero. Responde "esta funcionando?"
+   sem gastar uma secao inteira.
+   =============================================================== */
+.faixa {
+  border-block: 1px solid var(--color-borda);
+  background: color-mix(in srgb, var(--color-superficie) 60%, transparent);
+}
+
+.faixa__conteudo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem 1.1rem;
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: 1rem 1.5rem;
+  font-size: 0.9375rem;
+  color: var(--color-bruma);
+}
+
+.faixa__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 500;
+}
+
+.faixa__ponto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+/* Pulsa so quando esta no ar: parado, o proprio ponto ja diz que
+   alguma coisa nao esta correndo. */
+.faixa__ponto--vivo {
+  animation: pulso-faixa 2.4s ease-in-out infinite;
+}
+
+@keyframes pulso-faixa {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 currentColor; }
+  50%      { opacity: 0.65; }
+}
+
+.faixa__desde {
+  color: var(--color-bruma);
+  font-weight: 400;
+}
+
+.faixa__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.faixa__numero {
+  font-family: var(--fonte-space-mono), ui-monospace, monospace;
+  font-weight: 700;
+  color: var(--color-marfim);
+}
+
+/* Quem espera atendimento e a unica coisa da faixa que pede acao. */
+.faixa__item--atencao .faixa__numero {
+  color: var(--color-alerta);
+}
+
+.faixa__item--atencao {
+  color: var(--color-alerta);
+}
+
+.faixa__risco {
+  width: 1px;
+  height: 14px;
+  background: var(--color-borda);
+}
+
+@media (max-width: 560px) {
+  .faixa__risco { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faixa__ponto--vivo { animation: none; }
+}
+
+/* ===============================================================
+   PAINEL DE OPERACAO
+   =============================================================== */
+.painel {
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.painel__interno {
+  max-width: 72rem;
+  margin-inline: auto;
+}
+
+/* -- Abas -- */
+.abas {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--color-borda);
+  margin-bottom: 1.75rem;
+}
+
+.aba {
+  position: relative;
+  min-height: 44px;
+  padding: 0 1rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-bruma);
+  cursor: pointer;
+  transition: color 200ms ease;
+}
+
+.aba:hover { color: var(--color-marfim); }
+
+.aba--ativa { color: var(--color-marfim); }
+
+/* O sublinhado marca onde a pessoa esta: aba ativa nunca so por cor. */
+.aba--ativa::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--color-simbionte-claro);
+  border-radius: 2px;
+}
+
+/* -- Filtros e busca -- */
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.filtros__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0 0.9rem;
+  border: 1px solid var(--color-borda);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  color: var(--color-bruma);
+  cursor: pointer;
+  transition: border-color 180ms ease, color 180ms ease, background-color 180ms ease;
+}
+
+.chip:hover { color: var(--color-marfim); }
+
+.chip--ativo {
+  border-color: color-mix(in srgb, var(--color-simbionte) 70%, transparent);
+  background: color-mix(in srgb, var(--color-simbionte) 14%, transparent);
+  color: var(--color-marfim);
+}
+
+.chip__conta {
+  font-family: var(--fonte-space-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.busca {
+  flex: 1;
+  min-width: 14rem;
+  height: 44px;
+  padding: 0 1rem;
+  border: 1px solid var(--color-borda);
+  border-radius: 999px;
+  background: var(--color-superficie);
+  color: var(--color-marfim);
+  font-size: 0.9375rem;
+  outline: none;
+  transition: border-color 180ms ease;
+}
+
+.busca::placeholder { color: var(--color-bruma); }
+.busca:focus { border-color: color-mix(in srgb, var(--color-simbionte) 70%, transparent); }
+
+/* -- Lista de conversas -- */
+.conversas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.conversa {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--color-borda);
+  border-radius: 16px;
+  background: var(--color-superficie);
+  transition: border-color 180ms ease;
+}
+
+.conversa:hover {
+  border-color: color-mix(in srgb, var(--color-simbionte) 40%, var(--color-borda));
+}
+
+.conversa__inicial {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--color-borda);
+  background: var(--color-superficie-alta);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-bruma);
+}
+
+.conversa__corpo {
+  flex: 1;
+  min-width: 0;
+}
+
+.conversa__topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.7rem;
+}
+
+.conversa__nome {
+  font-weight: 600;
+  color: var(--color-marfim);
+}
+
+.conversa__telefone {
+  font-family: var(--fonte-space-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: var(--color-bruma);
+  overflow-wrap: anywhere;
+}
+
+.conversa__mensagem {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-bruma);
+  overflow-wrap: anywhere;
+}
+
+.conversa__lado {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  flex: none;
+}
+
+.conversa__quando {
+  font-family: var(--fonte-space-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  color: var(--color-bruma);
+  white-space: nowrap;
+}
+
+.conversa__marcas {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.conversa__naolidas {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--color-alerta);
+  color: var(--color-breu);
+  font-family: var(--fonte-space-mono), ui-monospace, monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.conversa__selo {
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.pausa {
+  min-height: 44px;
+  padding: 0 0.85rem;
+  border: 1px solid var(--color-borda);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  color: var(--color-bruma);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 180ms ease, color 180ms ease, background-color 180ms ease;
+}
+
+.pausa:hover { color: var(--color-marfim); }
+
+/* Pausado e um estado ligado, nao um alerta: ambar diz "atencao, o bot
+   nao esta respondendo aqui". */
+.pausa--ligada {
+  border-color: color-mix(in srgb, var(--color-alerta) 60%, transparent);
+  background: color-mix(in srgb, var(--color-alerta) 12%, transparent);
+  color: var(--color-alerta);
+}
+
+.vazio {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--color-bruma);
+}
+
+.vazio__acao {
+  color: var(--color-simbionte-claro);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* -- Cartoes de numeros -- */
+.numeros {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 0.75rem;
+}
+
+.cartao {
+  border: 1px solid var(--color-borda);
+  border-radius: 16px;
+  background: var(--color-superficie);
+  padding: 1.1rem 1.2rem;
+}
+
+.cartao__valor {
+  font-family: var(--fonte-space-mono), ui-monospace, monospace;
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-marfim);
+}
+
+.cartao__valor--atencao { color: var(--color-alerta); }
+
+.cartao__rotulo {
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--color-bruma);
+}
+
+.cartao--destaque {
+  grid-column: span 2;
+  position: relative;
+  border-color: color-mix(in srgb, var(--color-simbionte) 45%, var(--color-borda));
+}
+
+.cartao--destaque .cartao__valor { color: var(--color-simbionte-claro); }
+
+.cartao__barra {
+  display: block;
+  margin-top: 0.85rem;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--color-superficie-alta);
+  overflow: hidden;
+}
+
+.cartao__barra::after {
+  content: "";
+  display: block;
+  height: 100%;
+  width: var(--parte);
+  border-radius: 999px;
+  background: var(--color-simbionte);
+}
+
+@media (max-width: 640px) {
+  .conversa { flex-wrap: wrap; }
+  .conversa__lado {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  .cartao--destaque { grid-column: span 2; }
+}
+
+/* ===============================================================
+   CONVERSA ABERTA
+   =============================================================== */
+
+
+.aberta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.aberta__voltar {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 1rem;
+  border: 1px solid var(--color-borda);
+  border-radius: 999px;
+  font-size: 0.875rem;
+  color: var(--color-bruma);
+  cursor: pointer;
+  transition: color 180ms ease, border-color 180ms ease;
+}
+
+.aberta__voltar:hover {
+  color: var(--color-marfim);
+  border-color: color-mix(in srgb, var(--color-simbionte) 50%, var(--color-borda));
+}
+
+.aberta__cabeca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--color-borda);
+  border-radius: 16px;
+  background: var(--color-superficie);
+}
+
+.aberta__quem {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.aberta__linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.aberta__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.assumir {
+  min-height: 44px;
+  padding: 0 1.1rem;
+  border-radius: 999px;
+  background: var(--color-simbionte);
+  color: var(--color-breu);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 180ms ease;
+}
+
+.assumir:hover { background: var(--color-simbionte-claro); }
+
+/* -- Historico -- */
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 26rem;
+  overflow-y: auto;
+  padding: 1.1rem;
+  border: 1px solid var(--color-borda);
+  border-radius: 16px;
+  background: var(--color-superficie);
+}
+
+.balao {
+  max-width: 78%;
+  padding: 0.6rem 0.9rem;
+  border-radius: 14px;
+  border: 1px solid var(--color-borda);
+  background: var(--color-superficie-alta);
+}
+
+/* Cliente a esquerda, quem responde a direita: o lado ja diz quem
+   falou antes de ler o rotulo. */
+.balao--cliente { align-self: flex-start; }
+
+.balao--ia,
+.balao--humano {
+  align-self: flex-end;
+}
+
+.balao--ia {
+  border-color: color-mix(in srgb, var(--color-simbionte) 40%, transparent);
+  background: color-mix(in srgb, var(--color-simbionte) 10%, transparent);
+}
+
+.balao--humano {
+  border-color: color-mix(in srgb, var(--color-alerta) 40%, transparent);
+  background: color-mix(in srgb, var(--color-alerta) 9%, transparent);
+}
+
+.balao__autor {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-family: var(--fonte-space-mono), ui-monospace, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+
+.balao__hora {
+  color: var(--color-bruma);
+  opacity: 0.8;
+  letter-spacing: 0;
+}
+
+.balao__texto {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--color-marfim);
+  overflow-wrap: anywhere;
+}
+
+/* -- Responder -- */
+.responder {
+  border: 1px solid color-mix(in srgb, var(--color-alerta) 40%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--color-alerta) 7%, transparent);
+  padding: 0.75rem 0.8rem;
+}
+
+.responder__aviso {
+  font-size: 0.8125rem;
+  color: var(--color-alerta);
+  padding: 0 0.3rem 0.55rem;
+}
+
+.responder__linha {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid var(--color-borda);
+  border-radius: 999px;
+  background: var(--color-breu);
+  padding: 0.3rem 0.4rem 0.3rem 1rem;
+}
+
+.responder__dica {
+  font-size: 0.8125rem;
+  color: var(--color-bruma);
+  padding: 0.35rem 0.2rem;
+}
+
+/* ===============================================================
+   POLIMENTO DO PAINEL
+   Entrada em cascata, alvo de clique no cartao inteiro e estados de
+   foco/hover com peso. Tudo em transform/opacity: sem reflow.
+   =============================================================== */
+
+/* Alvo invisivel cobrindo o cartao inteiro. Fica ABAIXO do botao de
+   pausa na pilha, entao o pausar continua clicavel. O foco do teclado
+   desenha no cartao, nao no retangulo invisivel. */
+.conversa__alvo {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  cursor: pointer;
+}
+
+.conversa__alvo:focus-visible { outline: none; }
+
+.conversa:has(.conversa__alvo:focus-visible) {
+  outline: 2px solid var(--color-pulso);
+  outline-offset: 2px;
+}
+
+.conversa {
+  position: relative;
+  animation: entrar-linha 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--ordem, 0) * 45ms);
+  transition:
+    border-color 200ms ease,
+    background-color 200ms ease,
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.conversa:hover {
+  transform: translateY(-2px);
+  background: var(--color-superficie-alta);
+}
+
+.conversa:active { transform: translateY(0); }
+
+/* So o BOTAO sobe acima do alvo invisivel. Dar z-index ao contÃªiner
+   inteiro fazia a faixa de baixo (hora e selos) bloquear o clique que
+   abre a conversa â€” e clicar num selo deve abrir, nao fazer nada. */
+.conversa__lado .pausa { position: relative; z-index: 2; }
+
+@keyframes entrar-linha {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.cartao {
+  animation: entrar-linha 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--ordem, 0) * 55ms);
+  transition: border-color 200ms ease, transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cartao:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--color-simbionte) 35%, var(--color-borda));
+}
+
+.cartao__barra::after {
+  animation: crescer-barra 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes crescer-barra {
+  from { width: 0; }
+  to   { width: var(--parte); }
+}
+
+.aberta {
+  animation: entrar-painel 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes entrar-painel {
+  from { opacity: 0; transform: translateX(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.balao {
+  animation: entrar-balao 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--ordem, 0) * 50ms);
+}
+
+@keyframes entrar-balao {
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Contorno, nao preenchido: assumir e a acao principal, devolver e o
+   desfazer. Peso visual diferente para nao competirem. */
+.devolver {
+  min-height: 44px;
+  padding: 0 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--color-simbionte) 60%, transparent);
+  border-radius: 999px;
+  color: var(--color-simbionte-claro);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 180ms ease, border-color 180ms ease;
+}
+
+.devolver:hover {
+  background: color-mix(in srgb, var(--color-simbionte) 14%, transparent);
+  border-color: var(--color-simbionte);
+}
+
+/* O sublinhado da aba desliza em vez de saltar. */
+.aba::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-simbionte-claro);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.aba--ativa::after { transform: scaleX(1); }
+
+.chip {
+  transition:
+    border-color 180ms ease,
+    color 180ms ease,
+    background-color 180ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.chip:active { transform: scale(0.97); }
+
+/* Brilho tenue saindo do ponto de status. */
+.faixa {
+  position: relative;
+  overflow: hidden;
+}
+
+.faixa::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    40% 180% at 22% 50%,
+    color-mix(in srgb, var(--color-simbionte) 12%, transparent) 0%,
+    transparent 70%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .conversa,
+  .cartao,
+  .aberta,
+  .balao,
+  .cartao__barra::after { animation: none; }
+  .conversa:hover,
+  .cartao:hover { transform: none; }
+  .aba::after { transition: none; }
+}
+
+/* ===============================================================
+   ABAS NOVAS: CONTATOS E AGENTE
+   =============================================================== */
+
+/* Troca de aba: desliza de baixo. Curta, so o suficiente para o olho
+   perceber que o conteudo e outro. */
+.painel__area {
+  animation: trocar-aba 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes trocar-aba {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.abas {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.abas::-webkit-scrollbar { display: none; }
+
+.aba { white-space: nowrap; flex: none; }
+
+/* -- Tabela de contatos --
+   Tabela em vez de cartoes: aqui a pessoa COMPARA linhas, e comparacao
+   pede colunas alinhadas. Cartao serve para ler um item, nao varrer
+   muitos. */
+.tabela__caixa {
+  border: 1px solid var(--color-borda);
+  border-radius: 16px;
+  background: var(--color-superficie);
+  overflow-x: auto;
+}
+
+.tabela {
+  width: 100%;
+  min-width: 44rem;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.tabela thead th {
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid var(--color-borda);
+  font-family: var(--fonte-space-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-bruma);
+  white-space: nowrap;
+}
+
+.tabela tbody tr {
+  border-top: 1px solid var(--color-borda);
+  transition: background-color 180ms ease;
+  animation: entrar-linha 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--ordem, 0) * 35ms);
+}
+
+.tabela tbody tr:hover { background: var(--color-superficie-alta); }
+
+.tabela td {
+  padding: 0.85rem 1.1rem;
+  font-size: 0.875rem;
+  color: var(--color-bruma);
+  vertical-align: middle;
+}
+
+.tabela__nome {
+  font-weight: 600;
+  color: var(--color-marfim) !important;
+}
+
+.tabela__mono {
+  font-family: var(--fonte-space-mono), ui-monospace, monospace;
+  font-size: 0.8rem !important;
+  white-space: nowrap;
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.etiqueta {
+  border: 1px solid var(--color-borda);
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+/* -- Configuracao do agente -- */
+.agente {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 42rem;
+  padding: 1.6rem;
+  border: 1px solid var(--color-borda);
+  border-radius: 16px;
+  background: var(--color-superficie);
+}
+
+.agente__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.agente__campo label {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-marfim);
+}
+
+.agente__apoio {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--color-bruma);
+}
+
+.entrada {
+  height: 46px;
+  padding: 0 0.9rem;
+  border: 1px solid var(--color-borda);
+  border-radius: 12px;
+  background: var(--color-breu);
+  color: var(--color-marfim);
+  font-size: 0.9375rem;
+  outline: none;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.entrada--area {
+  height: auto;
+  padding: 0.75rem 0.9rem;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.entrada:focus {
+  border-color: color-mix(in srgb, var(--color-simbionte) 70%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-simbionte) 14%, transparent);
+}
+
+.agente__grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.1rem;
+  border: 1px solid var(--color-borda);
+  border-radius: 12px;
+}
+
+.agente__grupo legend { padding-inline: 0.4rem; }
+
+.agente__horas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.9rem;
+}
+
+/* -- Interruptor --
+   Caixa de selecao nativa escondida, nao removida: o teclado e o leitor
+   de tela continuam usando ela. O trilho e so a aparencia. */
+.interruptor {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--color-bruma);
+  cursor: pointer;
+}
+
+.interruptor input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.interruptor__trilho {
+  flex: none;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid var(--color-borda);
+  background: var(--color-breu);
+  padding: 2px;
+  transition: background-color 200ms ease, border-color 200ms ease;
+}
+
+.interruptor__bola {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-bruma);
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), background-color 200ms ease;
+}
+
+.interruptor input:checked + .interruptor__trilho {
+  background: color-mix(in srgb, var(--color-simbionte) 30%, transparent);
+  border-color: var(--color-simbionte);
+}
+
+.interruptor input:checked + .interruptor__trilho .interruptor__bola {
+  transform: translateX(18px);
+  background: var(--color-simbionte-claro);
+}
+
+.interruptor input:focus-visible + .interruptor__trilho {
+  outline: 2px solid var(--color-pulso);
+  outline-offset: 2px;
+}
+
+.agente__rodape {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--color-borda);
+}
+
+.assumir:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.agente__aviso {
+  font-size: 0.8125rem;
+  color: var(--color-simbionte-claro);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .painel__area,
+  .tabela tbody tr { animation: none; }
+  .interruptor__bola { transition: none; }
+}
+
+/* ===============================================================
+   DOCK DAS ABAS
+   Barra centralizada em pilula, com magnificacao ao passar o mouse.
+   =============================================================== */
+.dock__area {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+/* Sem pilula de fundo: com ela, a aba ampliada estourava a borda
+   arredondada do container e aparecia cortada. Cada aba carrega o
+   proprio contorno. */
+.dock {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  max-width: 100%;
+  padding: 0.5rem 0.25rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.dock::-webkit-scrollbar { display: none; }
+
+.dock__aba {
+  position: relative;
+  min-height: 44px;
+  padding: 0 1.25rem;
+  border: 1px solid var(--color-borda);
+  border-radius: 999px;
+  background: transparent;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-bruma);
+  white-space: nowrap;
+  flex: none;
+  cursor: pointer;
+  /* Origem embaixo: a aba cresce para cima, como no dock. Crescer para
+     os dois lados aproximaria demais dos contornos vizinhos. */
+  transform-origin: center bottom;
+  transition:
+    color 200ms ease,
+    border-color 200ms ease,
+    background-color 200ms ease;
+}
+
+.dock__aba:hover {
+  color: var(--color-marfim);
+  border-color: color-mix(in srgb, var(--color-simbionte) 55%, var(--color-borda));
+  background: color-mix(in srgb, var(--color-simbionte) 8%, transparent);
+}
+
+.dock__aba--ativa {
+  color: var(--color-breu);
+  background: var(--color-simbionte);
+  border-color: var(--color-simbionte);
+  font-weight: 600;
+}
+
+.dock__aba--ativa:hover {
+  color: var(--color-breu);
+  background: var(--color-simbionte-claro);
+  border-color: var(--color-simbionte-claro);
+}
+
+/* O rotulo nao escala junto: texto ampliado por transform fica borrado
+   e a linha de base dança. So o corpo da aba cresce. */
+.dock__rotulo { will-change: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dock__aba { transform: none !important; }
+}
+/* ===============================================================
+   CENTRALIZACAO DO CONTEUDO DO PAINEL
+   Cada aba tinha uma largura propria, entao a pagina parecia pular de
+   lado ao trocar. Agora todas dividem a mesma coluna centrada.
+   =============================================================== */
+.painel__area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.painel__area > * {
+  width: 100%;
+  max-width: 60rem;
+}
+
+.filtros { justify-content: center; }
+
+.agente { margin-inline: auto; }
+
+.numeros { justify-content: center; }
