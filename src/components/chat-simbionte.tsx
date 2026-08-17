@@ -1,48 +1,99 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { Paperclip, Send, Sparkles, Search, X } from "lucide-react";
 
 /**
- * Barra de conversa com o Simbionte.
+ * Conversa com o Simbionte.
  *
- * Fica logo abaixo do robô, na linha em que o corpo dele é cortado —
- * a intenção é que ele pareça emergir de dentro da própria conversa,
- * em vez de o corte parecer um erro.
+ * Modelo novo, características nossas. O que mudou em relação ao
+ * componente original:
  *
- * Ainda não fala com IA nenhuma. A função `enviar` é o ponto onde a
- * chamada entra depois; o campo, o anexo, as sugestões e os estados de
- * envio já estão prontos ao redor dela.
+ * - Fundo branco e acento azul trocados pelo escuro e o verde da marca.
+ * - Microfone removido: não existe entrada por voz aqui, e botão que não
+ *   funciona é pior que botão ausente.
+ * - "Think" e "Deep Search" viraram "Analisar" e "Buscar no histórico" —
+ *   os dois modos que fazem sentido para quem pergunta sobre os próprios
+ *   atendimentos.
+ * - As sugestões continuam: são o que ensina a pessoa o que dá para
+ *   perguntar.
+ *
+ * Ainda não fala com IA nenhuma. `enviar` é o ponto onde a chamada entra.
  */
 
-const SUGESTOES = [
+const SUGESTOES_ROTATIVAS = [
   "Quantas conversas estão abertas agora?",
   "Qual dúvida mais se repetiu esta semana?",
   "Alguém ficou sem resposta ontem?",
   "Resuma os atendimentos de hoje",
+  "Quem pediu orçamento e não voltou?",
+];
+
+const ATALHOS = [
+  "Quantas conversas estão abertas agora?",
+  "Qual dúvida mais se repetiu esta semana?",
+  "Alguém ficou sem resposta ontem?",
 ];
 
 export function ChatSimbionte() {
+  const [indice, setIndice] = useState(0);
+  const [mostrarDica, setMostrarDica] = useState(true);
+  const [ativo, setAtivo] = useState(false);
+  const [analisar, setAnalisar] = useState(false);
+  const [buscar, setBuscar] = useState(false);
   const [texto, setTexto] = useState("");
   const [anexos, setAnexos] = useState<string[]>([]);
-  const campo = useRef<HTMLTextAreaElement>(null);
-  const seletorArquivo = useRef<HTMLInputElement>(null);
+
+  const caixa = useRef<HTMLDivElement>(null);
+  const campo = useRef<HTMLInputElement>(null);
+  const arquivo = useRef<HTMLInputElement>(null);
+
+  // Gira as sugestões enquanto ninguém está escrevendo.
+  useEffect(() => {
+    if (ativo || texto) return;
+
+    const relogio = setInterval(() => {
+      setMostrarDica(false);
+      setTimeout(() => {
+        setIndice((i) => (i + 1) % SUGESTOES_ROTATIVAS.length);
+        setMostrarDica(true);
+      }, 400);
+    }, 3600);
+
+    return () => clearInterval(relogio);
+  }, [ativo, texto]);
+
+  // Clique fora fecha, desde que não haja rascunho para perder.
+  useEffect(() => {
+    const aoClicar = (e: MouseEvent) => {
+      if (caixa.current && !caixa.current.contains(e.target as Node)) {
+        if (!texto) setAtivo(false);
+      }
+    };
+    document.addEventListener("mousedown", aoClicar);
+    return () => document.removeEventListener("mousedown", aoClicar);
+  }, [texto]);
 
   const enviar = () => {
-    const pergunta = texto.trim();
-    if (!pergunta) return;
+    if (!texto.trim()) return;
     // TODO: chamar a IA com acesso ao banco da empresa.
     setTexto("");
     campo.current?.focus();
   };
 
-  const usarSugestao = (s: string) => {
-    setTexto(s);
-    campo.current?.focus();
-  };
+  const aberto = ativo || Boolean(texto);
 
   return (
     <div className="chat">
-      <div className="chat__caixa">
+      <motion.div
+        ref={caixa}
+        className="chat__caixa"
+        onClick={() => setAtivo(true)}
+        initial={false}
+        animate={{ height: aberto ? 132 : 72 }}
+        transition={{ type: "spring", stiffness: 140, damping: 20 }}
+      >
         {anexos.length > 0 && (
           <ul className="chat__anexos">
             {anexos.map((nome, i) => (
@@ -50,11 +101,14 @@ export function ChatSimbionte() {
                 <span className="chat__anexo-nome">{nome}</span>
                 <button
                   type="button"
-                  onClick={() => setAnexos((a) => a.filter((_, j) => j !== i))}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setAnexos((a) => a.filter((_, j) => j !== i));
+                  }}
                   className="chat__anexo-tirar"
                   aria-label={`Remover ${nome}`}
                 >
-                  <IconeFechar />
+                  <X size={13} />
                 </button>
               </li>
             ))}
@@ -64,15 +118,18 @@ export function ChatSimbionte() {
         <div className="chat__linha">
           <button
             type="button"
-            onClick={() => seletorArquivo.current?.click()}
+            onClick={(e) => {
+              e.stopPropagation();
+              arquivo.current?.click();
+            }}
             className="chat__acao"
             aria-label="Anexar documento"
           >
-            <IconeClipe />
+            <Paperclip size={19} />
           </button>
 
           <input
-            ref={seletorArquivo}
+            ref={arquivo}
             type="file"
             multiple
             accept=".pdf,.doc,.docx,.txt,.csv,.xlsx,image/*"
@@ -84,49 +141,157 @@ export function ChatSimbionte() {
             }}
           />
 
-          <span className="chat__faisca" aria-hidden="true">
-            <IconeFaisca />
-          </span>
+          <div className="chat__campo-area">
+            <label htmlFor="pergunta-simbionte" className="sr-only">
+              Sua pergunta para o Simbionte
+            </label>
+            <input
+              ref={campo}
+              id="pergunta-simbionte"
+              type="text"
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              onFocus={() => setAtivo(true)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  enviar();
+                }
+              }}
+              className="chat__campo"
+            />
 
-          <label htmlFor="pergunta-simbionte" className="sr-only">
-            Sua pergunta para o Simbionte
-          </label>
-          <textarea
-            ref={campo}
-            id="pergunta-simbionte"
-            rows={1}
-            value={texto}
-            onChange={(e) => setTexto(e.target.value)}
-            onKeyDown={(e) => {
-              // Enter envia; Shift+Enter quebra linha. É o que a pessoa
-              // já espera de qualquer campo de conversa.
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                enviar();
-              }
-            }}
-            placeholder="Tire suas dúvidas sobre os atendimentos…"
-            className="chat__campo"
-          />
+            {/* A dica entra letra a letra saindo de desfoque. É o que faz
+                a troca parecer escrita em vez de substituição. */}
+            <div className="chat__dica" aria-hidden="true">
+              <AnimatePresence mode="wait">
+                {mostrarDica && !ativo && !texto && (
+                  <motion.span
+                    key={indice}
+                    className="chat__dica-texto"
+                    initial="inicial"
+                    animate="dentro"
+                    exit="fora"
+                    variants={{
+                      inicial: {},
+                      dentro: { transition: { staggerChildren: 0.02 } },
+                      fora: {
+                        transition: {
+                          staggerChildren: 0.012,
+                          staggerDirection: -1,
+                        },
+                      },
+                    }}
+                  >
+                    {SUGESTOES_ROTATIVAS[indice].split("").map((letra, i) => (
+                      <motion.span
+                        key={i}
+                        style={{ display: "inline-block" }}
+                        variants={{
+                          inicial: { opacity: 0, filter: "blur(10px)", y: 8 },
+                          dentro: {
+                            opacity: 1,
+                            filter: "blur(0px)",
+                            y: 0,
+                            transition: {
+                              opacity: { duration: 0.22 },
+                              filter: { duration: 0.35 },
+                              y: { type: "spring", stiffness: 90, damping: 20 },
+                            },
+                          },
+                          fora: {
+                            opacity: 0,
+                            filter: "blur(10px)",
+                            y: -8,
+                            transition: {
+                              opacity: { duration: 0.18 },
+                              filter: { duration: 0.25 },
+                            },
+                          },
+                        }}
+                      >
+                        {letra === " " ? " " : letra}
+                      </motion.span>
+                    ))}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
 
           <button
             type="button"
-            onClick={enviar}
+            onClick={(e) => {
+              e.stopPropagation();
+              enviar();
+            }}
             disabled={!texto.trim()}
             className="chat__enviar"
             aria-label="Perguntar ao Simbionte"
           >
-            <IconeSeta />
+            <Send size={17} />
           </button>
         </div>
-      </div>
+
+        {/* Modos. Aparecem só com a caixa aberta: fechada, competiriam
+            com a pergunta, que é o que importa. */}
+        <motion.div
+          className="chat__modos"
+          initial={false}
+          animate={aberto ? "vendo" : "escondido"}
+          variants={{
+            escondido: {
+              opacity: 0,
+              y: 14,
+              pointerEvents: "none",
+              transition: { duration: 0.2 },
+            },
+            vendo: {
+              opacity: 1,
+              y: 0,
+              pointerEvents: "auto",
+              transition: { duration: 0.3, delay: 0.06 },
+            },
+          }}
+        >
+          <button
+            type="button"
+            aria-pressed={analisar}
+            onClick={(e) => {
+              e.stopPropagation();
+              setAnalisar((v) => !v);
+            }}
+            className={`chat__modo ${analisar ? "chat__modo--ligado" : ""}`}
+          >
+            <Sparkles size={16} />
+            Analisar
+          </button>
+
+          <button
+            type="button"
+            aria-pressed={buscar}
+            onClick={(e) => {
+              e.stopPropagation();
+              setBuscar((v) => !v);
+            }}
+            className={`chat__modo ${buscar ? "chat__modo--ligado" : ""}`}
+          >
+            <Search size={16} />
+            Buscar no histórico
+          </button>
+        </motion.div>
+      </motion.div>
 
       <ul className="chat__sugestoes">
-        {SUGESTOES.map((s) => (
+        {ATALHOS.map((s) => (
           <li key={s}>
             <button
               type="button"
-              onClick={() => usarSugestao(s)}
+              onClick={() => {
+                setTexto(s);
+                setAtivo(true);
+                campo.current?.focus();
+              }}
               className="chat__sugestao"
             >
               {s}
@@ -135,41 +300,5 @@ export function ChatSimbionte() {
         ))}
       </ul>
     </div>
-  );
-}
-
-/* Ícones em SVG, não emoji: escalam, herdam a cor e não dependem da
-   fonte do sistema. */
-
-function IconeClipe() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M21.44 11.05l-9.19 9.19a5.5 5.5 0 01-7.78-7.78l9.19-9.19a3.5 3.5 0 014.95 4.95l-9.2 9.19a1.5 1.5 0 01-2.12-2.12l8.49-8.49" />
-    </svg>
-  );
-}
-
-function IconeFaisca() {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M12 2l1.9 5.7L19.6 9.6l-5.7 1.9L12 17.2l-1.9-5.7L4.4 9.6l5.7-1.9L12 2z" />
-      <path d="M18.5 14.5l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9.9-2.6z" opacity="0.6" />
-    </svg>
-  );
-}
-
-function IconeSeta() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 19V5M5 12l7-7 7 7" />
-    </svg>
-  );
-}
-
-function IconeFechar() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-      <path d="M18 6L6 18M6 6l12 12" />
-    </svg>
   );
 }
