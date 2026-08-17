@@ -284,7 +284,11 @@ type Campo = {
   required?: boolean;
   type: "text" | "email" | "password";
   placeholder?: string;
-  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  /**
+   * Opcional: o valor é lido do FormData no envio, então o formulário
+   * não precisa de estado no React só para existir.
+   */
+  onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
 };
 
 type FormProps = {
@@ -294,7 +298,14 @@ type FormProps = {
   submitButton: string;
   errorField?: string | null;
   enviando?: boolean;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  /**
+   * Server Action que recebe o envio.
+   *
+   * Vai direto no <form> daqui, e não num formulário externo envolvendo
+   * este: dois <form> aninhados são HTML inválido — o navegador descarta
+   * um deles e o envio se perde.
+   */
+  action: (dados: FormData) => void;
   rodape?: ReactNode;
 };
 
@@ -305,7 +316,7 @@ const AnimatedForm = memo(function AnimatedForm({
   submitButton,
   errorField,
   enviando,
-  onSubmit,
+  action,
   rodape,
 }: FormProps) {
   const [senhaVisivel, setSenhaVisivel] = useState(false);
@@ -347,15 +358,17 @@ const AnimatedForm = memo(function AnimatedForm({
 
       <form
         noValidate
+        action={action}
         onSubmit={(event) => {
-          event.preventDefault();
           const encontrados = validar(event);
-          if (Object.keys(encontrados).length > 0) {
-            setErros(encontrados);
-            return;
+          if (Object.keys(encontrados).length === 0) {
+            setErros({});
+            return; // deixa seguir: a Server Action assume daqui
           }
-          setErros({});
-          onSubmit(event);
+          // Só barra o envio quando há erro. preventDefault impede a
+          // action de rodar; sem erro, nem chega aqui.
+          event.preventDefault();
+          setErros(encontrados);
         }}
       >
         <section className="mb-2 grid grid-cols-1 gap-1">

@@ -12,6 +12,11 @@ interface AnimatedTextProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
   textClassName?: string;
   underlineClassName?: string;
+  /**
+   * Aceito mas ignorado, para não quebrar quem já passa a prop vinda do
+   * componente original. O elemento semântico é escolhido por quem
+   * chama: este aqui só desenha as letras dentro dele.
+   */
   as?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "p" | "span";
   underlineGradient?: string;
   underlineHeight?: string;
@@ -32,10 +37,6 @@ const AnimatedText = React.forwardRef<HTMLDivElement, AnimatedTextProps>(
       className,
       textClassName,
       underlineClassName,
-      // `as` continua aceito para não quebrar quem já passa a prop, mas
-      // não é usado: o elemento semântico é escolhido por quem chama, e
-      // este componente só desenha as letras dentro dele.
-      as: _as,
       underlineGradient = "from-simbionte via-pulso to-simbionte",
       underlineHeight = "h-1",
       underlineOffset = "-bottom-2",
