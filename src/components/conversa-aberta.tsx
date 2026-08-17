@@ -21,6 +21,26 @@ import {
  * sem ir escrever agora.
  */
 
+/**
+ * "IA digitando…" com três pontos pulsando.
+ *
+ * `role="status"` e não `role="alert"`: é informação de fundo, e alert
+ * interromperia a leitura de tela a cada vez que a IA começasse a
+ * escrever. O texto fica escrito por extenso para quem não vê os pontos.
+ */
+function IADigitando() {
+  return (
+    <div className="digitando" role="status">
+      <span className="digitando__texto">IA digitando</span>
+      <span className="digitando__pontos" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </span>
+    </div>
+  );
+}
+
 export function ConversaAberta({
   conversa,
   pausado,
@@ -40,6 +60,30 @@ export function ConversaAberta({
   const campo = useRef<HTMLTextAreaElement>(null);
   const proximoId = useRef(1);
 
+  // Quantas mensagens já existiam quando a conversa abriu. O histórico
+  // entra em cascata — é o que dá a sensação de a conversa se montar —
+  // mas mensagem nova tem que aparecer na hora: escalonar o que a pessoa
+  // acabou de enviar vira lag, não animação.
+  //
+  // useState e não useRef porque este valor é lido durante o render, para
+  // decidir o atraso de cada balão. Ler `ref.current` no render é
+  // justamente o que o React proíbe; o setter aqui nunca é chamado, então
+  // o valor fica congelado no que era na montagem — que é o que queremos.
+  const [historico] = useState(conversa.mensagens.length);
+
+  /**
+   * A IA está compondo uma resposta agora.
+   *
+   * Sai do estado real da conversa, não de um timer decorativo: só faz
+   * sentido enquanto a IA é quem responde. Pausar ou assumir derruba o
+   * indicador na hora — seria mentira mostrar "IA digitando" logo depois
+   * de calar o bot.
+   *
+   * TODO: quando o agente estiver ligado, isso vira o evento de
+   * "resposta em geração" que vem do backend, em vez de derivar do estado.
+   */
+  const iaEscrevendo = !pausado && !assumido && conversa.estado === "ia";
+
   // Ao trocar de conversa tudo recomeça — histórico, rascunho e modo de
   // atendimento são daquela conversa, não do painel.
   //
@@ -50,7 +94,7 @@ export function ConversaAberta({
 
   useEffect(() => {
     fim.current?.scrollIntoView({ block: "end" });
-  }, [mensagens]);
+  }, [mensagens, iaEscrevendo]);
 
   const assumir = () => {
     setAssumido(true);
@@ -147,7 +191,9 @@ export function ConversaAberta({
           <div
             key={m.id}
             className={`balao balao--${m.de}`}
-            style={{ ["--ordem" as string]: Math.min(i, 8) }}
+            style={{
+              ["--ordem" as string]: i < historico ? Math.min(i, 8) : 0,
+            }}
           >
             <p className="balao__autor" style={{ color: AUTORES[m.de].cor }}>
               {AUTORES[m.de].rotulo}
@@ -156,6 +202,9 @@ export function ConversaAberta({
             <p className="balao__texto">{m.texto}</p>
           </div>
         ))}
+
+        {iaEscrevendo && <IADigitando />}
+
         <div ref={fim} />
       </div>
 

@@ -181,7 +181,6 @@ export function RoboMascote() {
     <div className={`robo-palco ${pronto ? "robo-palco--pronto" : ""}`}>
       <div ref={camada} className="robo-camada">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           ref={img}
           src={caminho(Math.floor(QUADROS / 2))}

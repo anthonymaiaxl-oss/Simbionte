@@ -4,6 +4,7 @@ import { useRef } from "react";
 import {
   motion,
   useMotionValue,
+  useReducedMotion,
   useSpring,
   useTransform,
   type MotionValue,
@@ -82,6 +83,7 @@ function AbaDock<T extends string>({
   aoTrocar: () => void;
 }) {
   const ref = useRef<HTMLButtonElement>(null);
+  const semMovimento = useReducedMotion();
 
   const distancia = useTransform(mouseX, (x) => {
     const caixa = ref.current?.getBoundingClientRect();
@@ -112,6 +114,21 @@ function AbaDock<T extends string>({
       style={{ scale: escala }}
       className={`dock__aba ${ativa ? "dock__aba--ativa" : ""}`}
     >
+      {/* Um fundo só, que viaja de aba em aba pelo layoutId. Trocar a
+          classe faria a marca apagar aqui e acender ali; assim o olho
+          acompanha o mesmo objeto se mudando de lugar. */}
+      {ativa && (
+        <motion.span
+          layoutId="dock-fundo"
+          className="dock__fundo"
+          aria-hidden="true"
+          transition={
+            semMovimento
+              ? { duration: 0 }
+              : { type: "spring", stiffness: 400, damping: 34, mass: 0.6 }
+          }
+        />
+      )}
       <span className="dock__rotulo" style={{ display: "inline-block" }}>
         {item.rotulo}
       </span>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Chips } from "@/components/chips";
 import { CONTATOS } from "@/lib/dados-painel";
 
 /**
@@ -12,6 +13,12 @@ import { CONTATOS } from "@/lib/dados-painel";
  */
 
 type Ordem = "recente" | "conversas" | "nome";
+
+const ORDENS: { id: Ordem; rotulo: string }[] = [
+  { id: "recente", rotulo: "Mais recentes" },
+  { id: "conversas", rotulo: "Mais conversas" },
+  { id: "nome", rotulo: "Nome" },
+];
 
 export function Contatos() {
   const [busca, setBusca] = useState("");
@@ -38,25 +45,13 @@ export function Contatos() {
   return (
     <div id="painel-contatos" role="tabpanel">
       <div className="filtros">
-        <div className="filtros__chips" role="group" aria-label="Ordenar por">
-          {(
-            [
-              ["recente", "Mais recentes"],
-              ["conversas", "Mais conversas"],
-              ["nome", "Nome"],
-            ] as [Ordem, string][]
-          ).map(([id, rotulo]) => (
-            <button
-              key={id}
-              type="button"
-              aria-pressed={ordem === id}
-              onClick={() => setOrdem(id)}
-              className={`chip ${ordem === id ? "chip--ativo" : ""}`}
-            >
-              {rotulo}
-            </button>
-          ))}
-        </div>
+        <Chips
+          itens={ORDENS}
+          atual={ordem}
+          aoTrocar={setOrdem}
+          grupo="ordem"
+          rotuloGrupo="Ordenar por"
+        />
 
         <label htmlFor="busca-contatos" className="sr-only">
           Buscar contato por nome ou número

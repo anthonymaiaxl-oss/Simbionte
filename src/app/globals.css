@@ -176,10 +176,23 @@
 
 @layer base {
   html {
-    /* Sem smooth aqui: quem suaviza a rolagem agora Ãƒ€ƒâ€ Ã¢¬¢Ãƒ¢¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢Ãƒ€ƒÂ¢Ã¢â€šÂ¬ e e e Ã¢¬¢Ãƒ¢¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€že Ãƒ€ƒâ€ e Ã¢¬¢Ãƒ¢¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢Ãƒ€ƒÂ¢Ã¢â€šÂ¬ e e Ã¢¬¢Ãƒ¢¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€že e o Lenis. Manter
+    /* Sem smooth aqui: quem suaviza a rolagem agora e o Lenis. Manter
        os dois faz navegador e biblioteca animarem a mesma rolagem ao
        mesmo tempo, e o resultado engasga. */
     scroll-behavior: auto;
+  }
+
+  /* O fundo da Hero usa width:100vw para escapar da largura maxima da
+     secao (896px). Só que 100vw CONTA a barra de rolagem e a area util
+     nao conta, entao sobravam ~8px de rolagem lateral na pagina inteira.
+     O corte mora no `main`, que ja mede exatamente a largura util: no
+     elemento raiz o overflow propaga para a viewport e o Chrome continua
+     rolando assim mesmo.
+     `clip` e nao `hidden` de proposito — com hidden o overflow-y vira
+     `auto` e o elemento vira um container de rolagem, que e justamente o
+     que o Lenis controla. `clip` corta sem criar container nenhum. */
+  main {
+    overflow-x: clip;
   }
 
   body {
@@ -815,10 +828,29 @@ html.lenis body {
    PAINEL DE OPERACAO
    =============================================================== */
 .painel {
+  position: relative;
   padding: 2.5rem 1.5rem 4rem;
 }
 
+/* Mesmo verde da Hero (#16a34a), mais fraco e ancorado no topo: o painel
+   parece continuar a mesma tela em vez de comecar um bloco preto novo.
+   Fica no ::before para nao brigar com o fundo dos cartoes. */
+.painel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    72% 54% at 50% 0%,
+    rgba(22, 163, 74, 0.1) 0%,
+    transparent 68%
+  );
+}
+
 .painel__interno {
+  position: relative;
+  z-index: 1;
   max-width: 72rem;
   margin-inline: auto;
 }
@@ -873,7 +905,13 @@ html.lenis body {
   gap: 0.4rem;
 }
 
+/* isolation:isolate cria um contexto de empilhamento proprio, e e o que
+   permite ao fundo deslizante ficar em z-index -1: atras do texto do
+   chip, mas ainda dentro dele — sem isso ele afundaria ate o fundo da
+   pagina e sumiria. */
 .chip {
+  position: relative;
+  isolation: isolate;
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
@@ -884,15 +922,24 @@ html.lenis body {
   font-size: 0.875rem;
   color: var(--color-bruma);
   cursor: pointer;
-  transition: border-color 180ms ease, color 180ms ease, background-color 180ms ease;
+  transition: border-color 180ms ease, color 180ms ease;
 }
 
 .chip:hover { color: var(--color-marfim); }
 
+/* O preenchimento e o elemento que viaja; aqui fica so o que nao pode
+   deslizar — cor do texto e contorno — que trocam por transicao. */
 .chip--ativo {
   border-color: color-mix(in srgb, var(--color-simbionte) 70%, transparent);
-  background: color-mix(in srgb, var(--color-simbionte) 14%, transparent);
   color: var(--color-marfim);
+}
+
+.chip__fundo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-simbionte) 16%, transparent);
 }
 
 .chip__conta {
@@ -1066,13 +1113,24 @@ html.lenis body {
 }
 
 /* -- Cartoes de numeros -- */
+/* Quatro colunas fixas para oito cartoes: duas fileiras cheias, sem
+   orfao. Com auto-fill o numero de colunas variava com a largura e quase
+   sempre sobrava um cartao sozinho na ultima fileira.
+   A centralizacao e a largura maxima vem de `.painel__area > *`, la
+   embaixo: repetir aqui so criaria duas regras disputando a mesma coisa. */
 .numeros {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
   gap: 0.75rem;
 }
 
+/* Coluna com rodape reservado. Todos os cartoes tem o mesmo tamanho, e a
+   barra do cartao de destaque mora nesse rodape em vez de esticar o
+   cartao e quebrar a harmonia da grade. */
 .cartao {
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--color-borda);
   border-radius: 16px;
   background: var(--color-superficie);
@@ -1089,24 +1147,30 @@ html.lenis body {
 
 .cartao__valor--atencao { color: var(--color-alerta); }
 
+/* A folga de baixo garante que a barra do cartao de destaque nunca
+   encoste no rotulo, mesmo quando ele cabe numa linha so. */
 .cartao__rotulo {
   margin-top: 0.5rem;
+  margin-bottom: 0.85rem;
   font-size: 0.8125rem;
   line-height: 1.35;
   color: var(--color-bruma);
 }
 
+/* Mesmo tamanho dos outros. O destaque vem da borda e da cor do numero,
+   nao de ocupar duas colunas. */
 .cartao--destaque {
-  grid-column: span 2;
   position: relative;
   border-color: color-mix(in srgb, var(--color-simbionte) 45%, var(--color-borda));
 }
 
 .cartao--destaque .cartao__valor { color: var(--color-simbionte-claro); }
 
+/* margin-top:auto empurra a barra para o rodape do cartao. Como as
+   fileiras sao 1fr, ela assenta na mesma linha em qualquer cartao. */
 .cartao__barra {
   display: block;
-  margin-top: 0.85rem;
+  margin-top: auto;
   height: 4px;
   border-radius: 999px;
   background: var(--color-superficie-alta);
@@ -1122,6 +1186,12 @@ html.lenis body {
   background: var(--color-simbionte);
 }
 
+/* Quatro colunas so cabem no desktop. Abaixo disso a grade cai para
+   duas e depois uma, sempre com todos os cartoes do mesmo tamanho. */
+@media (max-width: 900px) {
+  .numeros { grid-template-columns: repeat(2, 1fr); }
+}
+
 @media (max-width: 640px) {
   .conversa { flex-wrap: wrap; }
   .conversa__lado {
@@ -1131,7 +1201,10 @@ html.lenis body {
     justify-content: space-between;
     flex-wrap: wrap;
   }
-  .cartao--destaque { grid-column: span 2; }
+}
+
+@media (max-width: 420px) {
+  .numeros { grid-template-columns: 1fr; }
 }
 
 /* ===============================================================
@@ -1228,6 +1301,55 @@ html.lenis body {
   border-radius: 14px;
   border: 1px solid var(--color-borda);
   background: var(--color-superficie-alta);
+}
+
+/* -- IA digitando --
+   Fica do lado direito, alinhado com os baloes da IA: e a resposta dela
+   comecando a existir, entao nasce no lugar onde vai aparecer. */
+.digitando {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--color-simbionte) 30%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--color-simbionte) 7%, transparent);
+  animation: entrar-balao 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.digitando__texto {
+  font-family: var(--fonte-space-mono), ui-monospace, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-simbionte-claro);
+}
+
+.digitando__pontos {
+  display: inline-flex;
+  gap: 4px;
+  /* Alinha os pontos com a base da caixa alta do rotulo, nao com a
+     linha de base do texto: senao ficam flutuando. */
+  align-items: center;
+}
+
+.digitando__pontos i {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--color-pulso);
+  animation: pontinho 1.25s ease-in-out infinite;
+}
+
+/* O atraso escalonado e o que faz a onda: os tres pontos correm a mesma
+   animacao, so que fora de fase. */
+.digitando__pontos i:nth-child(2) { animation-delay: 0.18s; }
+.digitando__pontos i:nth-child(3) { animation-delay: 0.36s; }
+
+@keyframes pontinho {
+  0%, 60%, 100% { opacity: 0.28; transform: translateY(0); }
+  30%           { opacity: 1;    transform: translateY(-3px); }
 }
 
 /* Cliente a esquerda, quem responde a direita: o lado ja diz quem
@@ -1334,19 +1456,21 @@ html.lenis body {
   transition:
     border-color 200ms ease,
     background-color 200ms ease,
+    box-shadow 200ms ease,
     transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .conversa:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   background: var(--color-superficie-alta);
+  box-shadow: 0 12px 26px -12px rgba(0, 0, 0, 0.8);
 }
 
 .conversa:active { transform: translateY(0); }
 
-/* So o BOTAO sobe acima do alvo invisivel. Dar z-index ao contÃªiner
+/* So o BOTAO sobe acima do alvo invisivel. Dar z-index ao conteiner
    inteiro fazia a faixa de baixo (hora e selos) bloquear o clique que
-   abre a conversa â€” e clicar num selo deve abrir, nao fazer nada. */
+   abre a conversa - e clicar num selo deve abrir, nao fazer nada. */
 .conversa__lado .pausa { position: relative; z-index: 2; }
 
 @keyframes entrar-linha {
@@ -1357,12 +1481,19 @@ html.lenis body {
 .cartao {
   animation: entrar-linha 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: calc(var(--ordem, 0) * 55ms);
-  transition: border-color 200ms ease, transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Sombra baixa e bem espalhada: em fundo escuro, sombra dura vira uma
+   mancha cinza. O que da a sensacao de levantar e o deslocamento, a
+   sombra so ancora. */
 .cartao:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   border-color: color-mix(in srgb, var(--color-simbionte) 35%, var(--color-borda));
+  box-shadow: 0 12px 26px -12px rgba(0, 0, 0, 0.8);
 }
 
 .cartao__barra::after {
@@ -1504,10 +1635,15 @@ html.lenis body {
   overflow-x: auto;
 }
 
+/* separate em vez de collapse: com bordas colapsadas os cantos sao
+   compartilhados entre celulas vizinhas, e ai transform e box-shadow na
+   linha saem rasgados. Com border-spacing zero o desenho fica igual, e a
+   divisoria passa a morar no td. */
 .tabela {
   width: 100%;
   min-width: 44rem;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   text-align: left;
 }
 
@@ -1524,13 +1660,25 @@ html.lenis body {
 }
 
 .tabela tbody tr {
-  border-top: 1px solid var(--color-borda);
-  transition: background-color 180ms ease;
+  position: relative;
+  transition:
+    background-color 180ms ease,
+    box-shadow 200ms ease,
+    transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
   animation: entrar-linha 380ms cubic-bezier(0.22, 1, 0.36, 1) both;
   animation-delay: calc(var(--ordem, 0) * 35ms);
 }
 
-.tabela tbody tr:hover { background: var(--color-superficie-alta); }
+.tabela tbody td { border-top: 1px solid var(--color-borda); }
+
+/* z-index no hover para a sombra cair por cima da linha de baixo em vez
+   de ser coberta por ela. */
+.tabela tbody tr:hover {
+  z-index: 1;
+  transform: translateY(-2px);
+  background: var(--color-superficie-alta);
+  box-shadow: 0 8px 20px -10px rgba(0, 0, 0, 0.75);
+}
 
 .tabela td {
   padding: 0.85rem 1.1rem;
@@ -1713,6 +1861,21 @@ html.lenis body {
   .painel__area,
   .tabela tbody tr { animation: none; }
   .interruptor__bola { transition: none; }
+
+  /* Os pontinhos param de pular mas continuam visiveis: quem pediu menos
+     movimento ainda precisa saber que a IA esta escrevendo. */
+  .digitando { animation: none; }
+  .digitando__pontos i {
+    animation: none;
+    opacity: 0.8;
+  }
+
+  /* `.cartao:hover` e `.conversa:hover` ja sao zerados no bloco de
+     movimento reduzido la de cima; aqui fica so a linha de tabela, que e
+     nova. A mudanca de fundo continua marcando o hover. */
+  .tabela tbody tr:hover {
+    transform: none;
+  }
 }
 
 /* ===============================================================
@@ -1742,6 +1905,7 @@ html.lenis body {
 
 .dock__aba {
   position: relative;
+  isolation: isolate;
   min-height: 44px;
   padding: 0 1.25rem;
   border: 1px solid var(--color-borda);
@@ -1768,11 +1932,26 @@ html.lenis body {
   background: color-mix(in srgb, var(--color-simbionte) 8%, transparent);
 }
 
+/* O preenchimento verde saiu daqui e virou .dock__fundo, que desliza de
+   uma aba para a outra. O atraso de 90ms no texto e de proposito: sem
+   ele a aba nova escurecia a letra antes de o verde chegar embaixo, e
+   por um instante ficava texto escuro em fundo escuro. A aba que perde
+   a selecao clareia sem atraso, porque a regra base nao tem delay. */
 .dock__aba--ativa {
   color: var(--color-breu);
-  background: var(--color-simbionte);
   border-color: var(--color-simbionte);
   font-weight: 600;
+  transition:
+    color 160ms ease 90ms,
+    border-color 200ms ease;
+}
+
+.dock__fundo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 999px;
+  background: var(--color-simbionte);
 }
 
 .dock__aba--ativa:hover {
@@ -1808,7 +1987,9 @@ html.lenis body {
 
 .agente { margin-inline: auto; }
 
-.numeros { justify-content: center; }
+/* `.numeros` nao precisa de regra aqui: e grid de colunas 1fr, entao ja
+   preenche a coluna centrada que `.painel__area > *` define. */
+
 /* ===============================================================
    TELA DE ENTRADA
    Tailwind v4 configura por CSS, entao as animacoes do componente

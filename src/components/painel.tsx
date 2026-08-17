@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useReducedMotion } from "motion/react";
 import { Agente } from "@/components/agente";
+import { Chips } from "@/components/chips";
 import { Contatos } from "@/components/contatos";
 import { ConversaAberta } from "@/components/conversa-aberta";
 import { DockAbas } from "@/components/dock-abas";
@@ -15,21 +16,23 @@ import {
 } from "@/lib/dados-painel";
 
 /**
- * Painel de opera��o: n�meros e conversas.
+ * Painel de operação: números e conversas.
  *
- * Duas abas porque s�o dois modos de uso diferentes � "como foi o dia"
- * e "quem precisa de mim agora" � e misturar os dois numa tela s� faz o
- * urgente sumir no meio do balan�o.
+ * Duas abas porque são dois modos de uso diferentes — "como foi o dia"
+ * e "quem precisa de mim agora" — e misturar os dois numa tela só faz o
+ * urgente sumir no meio do balanço.
  *
- * As conversas abrem primeiro na ordem de urg�ncia, n�o por hor�rio:
- * quem est� esperando resposta humana vem antes de quem j� foi atendido.
+ * As conversas abrem primeiro na ordem de urgência, não por horário:
+ * quem está esperando resposta humana vem antes de quem já foi atendido.
  */
 
 type Aba = "conversas" | "numeros" | "contatos" | "agente";
 
+/* O id continua "numeros" — é a chave da rota e do aria-controls. Só o
+   rótulo mudou para "Painel". */
 const ABAS: { id: Aba; rotulo: string }[] = [
   { id: "conversas", rotulo: "Conversas" },
-  { id: "numeros", rotulo: "Números" },
+  { id: "numeros", rotulo: "Painel" },
   { id: "contatos", rotulo: "Contatos" },
   { id: "agente", rotulo: "Agente" },
 ];
@@ -51,8 +54,9 @@ export function Painel() {
       <div className="painel__interno">
         <DockAbas itens={ABAS} atual={aba} aoTrocar={setAba} />
 
-        {/* A key for�a o React a remontar ao trocar de aba, e com isso a
-            anima��o de entrada roda de novo. Sem ela a troca � seca. */}
+        {/* A key força o React a remontar ao trocar de aba, e com isso a
+            animação de entrada — e a contagem dos números — roda de
+            novo. Sem ela a troca é seca. */}
         <div key={aba} className="painel__area">
           {aba === "conversas" && <Conversas />}
           {aba === "numeros" && <Numeros />}
@@ -81,7 +85,7 @@ function Conversas() {
     return CONVERSAS.filter((c) => {
       if (filtro !== "todas" && c.estado !== filtro) return false;
       if (!termo) return true;
-      // Busca por nome e por telefone, ignorando a formata��o do n�mero.
+      // Busca por nome e por telefone, ignorando a formatação do número.
       const numero = c.telefone.replace(/\D/g, "");
       return (
         c.nome.toLowerCase().includes(termo) ||
@@ -92,16 +96,23 @@ function Conversas() {
     );
   }, [filtro, busca]);
 
-  const contar = (id: EstadoConversa | "todas") =>
-    id === "todas"
-      ? CONVERSAS.length
-      : CONVERSAS.filter((c) => c.estado === id).length;
+  const filtrosComConta = useMemo(
+    () =>
+      FILTROS.map((f) => ({
+        ...f,
+        conta:
+          f.id === "todas"
+            ? CONVERSAS.length
+            : CONVERSAS.filter((c) => c.estado === f.id).length,
+      })),
+    [],
+  );
 
   if (aberta) {
     return (
       <div id="painel-conversas" role="tabpanel">
         {/* A key remonta o componente ao trocar de conversa: e com isso
-            historico, rascunho e modo de atendimento recomecam sem
+            histórico, rascunho e modo de atendimento recomeçam sem
             precisar de um efeito chamando setState. */}
         <ConversaAberta
           key={aberta.id}
@@ -117,32 +128,23 @@ function Conversas() {
   return (
     <div id="painel-conversas" role="tabpanel">
       <div className="filtros">
-        <div className="filtros__chips" role="group" aria-label="Filtrar por estado">
-          {FILTROS.map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              /* aria-pressed em vez de div com classe: o leitor de tela
-                 precisa saber que o filtro est� ligado. */
-              aria-pressed={filtro === f.id}
-              onClick={() => setFiltro(f.id)}
-              className={`chip ${filtro === f.id ? "chip--ativo" : ""}`}
-            >
-              {f.rotulo}
-              <span className="chip__conta">{contar(f.id)}</span>
-            </button>
-          ))}
-        </div>
+        <Chips
+          itens={filtrosComConta}
+          atual={filtro}
+          aoTrocar={setFiltro}
+          grupo="estado"
+          rotuloGrupo="Filtrar por estado"
+        />
 
         <label htmlFor="busca-conversas" className="sr-only">
-          Buscar conversa por nome ou n�mero
+          Buscar conversa por nome ou número
         </label>
         <input
           id="busca-conversas"
           type="search"
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
-          placeholder="Buscar por nome ou n�mero�"
+          placeholder="Buscar por nome ou número…"
           className="busca"
         />
       </div>
@@ -198,11 +200,11 @@ function LinhaConversa({
 
   return (
     <li className="conversa" style={{ ["--ordem" as string]: indice }}>
-      {/* O bot�o � invis�vel e cobre o cart�o inteiro, em vez de
-          envolver o conte�do. Assim a caixa toda abre a conversa sem
-          aninhar o "Pausar bot" dentro de outro bot�o � o que seria
-          HTML inv�lido e quebraria o teclado. O bot�o de pausa sobe na
-          pilha e continua clic�vel por cima. */}
+      {/* O botão é invisível e cobre o cartão inteiro, em vez de
+          envolver o conteúdo. Assim a caixa toda abre a conversa sem
+          aninhar o "Pausar bot" dentro de outro botão — o que seria
+          HTML inválido e quebraria o teclado. O botão de pausa sobe na
+          pilha e continua clicável por cima. */}
       <button
         type="button"
         onClick={aoAbrir}
@@ -229,10 +231,10 @@ function LinhaConversa({
           {conversa.naoLidas > 0 && (
             <span className="conversa__naolidas">
               {conversa.naoLidas}
-              <span className="sr-only"> mensagens n�o lidas</span>
+              <span className="sr-only"> mensagens não lidas</span>
             </span>
           )}
-          {/* Cor com r�tulo junto: estado nunca s� por cor. */}
+          {/* Cor com rótulo junto: estado nunca só por cor. */}
           <span
             className="conversa__selo"
             style={{ color: estado.cor, borderColor: estado.cor }}
@@ -264,7 +266,7 @@ function iniciais(nome: string) {
     .toUpperCase();
 }
 
-/* -- N�meros -------------------------------------------------- */
+/* -- Números -------------------------------------------------- */
 
 const CARTOES: { chave: keyof typeof NUMEROS; rotulo: string; alerta?: boolean }[] =
   [
@@ -306,7 +308,18 @@ function Contador({ ate }: { ate: number }) {
     };
 
     frame = requestAnimationFrame(passo);
-    return () => cancelAnimationFrame(frame);
+
+    // Rede de segurança. Em aba de segundo plano o requestAnimationFrame
+    // não roda, e sem isto o cartão ficaria mostrando 0 até a pessoa
+    // voltar para a aba — o número é o dado, a animação é só o caminho
+    // até ele. setTimeout é limitado a 1x por segundo em aba oculta, mas
+    // dispara; é justamente o que precisamos aqui.
+    const rede = window.setTimeout(() => setValor(ate), duracao + 120);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      window.clearTimeout(rede);
+    };
   }, [ate, semMovimento]);
 
   // Sem movimento o número aparece pronto, sem passar por estado nenhum.
@@ -318,8 +331,8 @@ function Numeros() {
     <div id="painel-numeros" role="tabpanel" className="numeros">
       {CARTOES.map((c, i) => {
         const valor = NUMEROS[c.chave];
-        // S� pinta de �mbar o que realmente pede a��o: zero pendente �
-        // boa not�cia e n�o deve gritar.
+        // Só pinta de âmbar o que realmente pede ação: zero pendente é
+        // boa notícia e não deve gritar.
         const pedeAcao = c.alerta && valor > 0;
         return (
           <article
@@ -335,6 +348,9 @@ function Numeros() {
         );
       })}
 
+      {/* Mesmo tamanho dos outros: a barra mora no rodapé do cartão, que
+          todos têm reservado. O destaque vem da borda e da cor, não de
+          ocupar o dobro de espaço e quebrar a grade. */}
       <article
         className="cartao cartao--destaque"
         style={{ ["--ordem" as string]: CARTOES.length }}
