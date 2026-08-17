@@ -415,22 +415,27 @@ body::after {
 .fundo-hero {
   position: absolute;
   inset: 0;
+  /* Escapa da largura maxima da Hero (896px). Sem isso os numeros nao
+     tinham espaco para se espalhar e ficavam amontoados de um lado. */
+  left: 50%;
+  right: auto;
+  width: 100vw;
+  margin-left: -50vw;
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
   /* Mascara centrada na origem do fluxo (atras do robo), nao no meio da
      Hero: senao as marcas que sobem apagariam cedo demais. */
-  -webkit-mask-image: radial-gradient(120% 108% at 50% 45%, #000 62%, transparent 100%);
-  mask-image: radial-gradient(120% 108% at 50% 45%, #000 62%, transparent 100%);
+  -webkit-mask-image: radial-gradient(78% 92% at 50% 52%, #000 60%, transparent 100%);
+  mask-image: radial-gradient(78% 92% at 50% 52%, #000 60%, transparent 100%);
 }
 
+/* left/top vem do componente: e o layout que garante o espalhamento em
+   todas as direcoes. A animacao so leva a marca da cabeca do robo ate
+   esse lugar e a apaga. Se ela falhar, o pior caso e a marca ficar
+   parada no ponto certo, nao empilhada no centro. */
 .fundo-hero__marca {
   position: absolute;
-  left: 50%;
-  /* Origem atras do ROBO. 43% e a altura da cabeca dele dentro da Hero:
-     medido, nao chutado. A Hero inclui o chat embaixo, entao o meio dela
-     (50%) ja cai abaixo do robo ÃƒÂ¢Ã¢â€šÂ¬Ã¢¬Â foi o erro da tentativa anterior. */
-  top: 43%;
   font-family: var(--fonte-space-mono), ui-monospace, monospace;
   font-weight: 400;
   color: var(--color-pulso);
@@ -438,33 +443,36 @@ body::after {
   letter-spacing: 0.06em;
   opacity: 0;
   will-change: transform, opacity;
-  animation-name: irradiar;
-  animation-timing-function: cubic-bezier(0.16, 0.62, 0.36, 1);
+  animation-name: espalhar-marca;
+  animation-timing-function: cubic-bezier(0.17, 0.55, 0.3, 1);
   animation-iteration-count: infinite;
 }
 
 /*
-  Todos nascem no mesmo ponto, atras do nome, e viajam para fora.
-  O -50%/-50% mantem o elemento centrado no proprio ponto de origem
-  enquanto ele cresce; sem isso ele cresceria so para a direita e para
-  baixo. O easing e desacelerado: sai rapido de tras do texto e vai
-  perdendo velocidade ate a borda, que e o que faz parecer fluxo em vez
-  de esteira constante.
+  Nasce na cabeca do robo, pequena e invisivel, e desliza ate o proprio
+  lugar crescendo. O --volta-x/y traz ela de volta ao centro no comeco
+  do ciclo; no fim vale zero, entao ela repousa onde o layout mandou.
+
+  A janela de visibilidade e curta de proposito, entre 18% e 62% do
+  ciclo. Com duracoes diferentes e atrasos negativos, poucas ficam
+  acesas ao mesmo tempo e a tela nao vira poluicao.
 */
-@keyframes irradiar {
+@keyframes espalhar-marca {
   0% {
-    transform: translate3d(-50%, -50%, 0) scale(0.62) rotate(var(--giro));
+    transform:
+      translate(calc(-50% + var(--volta-x)), calc(-50% + var(--volta-y)))
+      scale(0.5)
+      rotate(var(--giro));
     opacity: 0;
   }
-  14% {
-    opacity: 0.72;
+  18% {
+    opacity: 0.62;
   }
-  74% {
-    opacity: 0.5;
+  62% {
+    opacity: 0.42;
   }
   100% {
-    transform:
-      rotate(var(--giro));
+    transform: translate(-50%, -50%) scale(1) rotate(var(--giro));
     opacity: 0;
   }
 }
