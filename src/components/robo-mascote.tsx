@@ -25,6 +25,24 @@ const DURACAO_PISCADA = 130;
 const caminho = (i: number) =>
   `/robo/verde/frame_${String(i + 1).padStart(3, "0")}.webp`;
 
+/**
+ * O quadro pedido, ou o mais perto dele que já esteja em memória.
+ *
+ * Trocar o `src` para um quadro que ainda não baixou deixa a imagem em
+ * branco até ele chegar — o robô pisca e o giro parece travado. Melhor
+ * mostrar o vizinho que já existe: a diferença entre dois quadros
+ * consecutivos é pequena, e ninguém percebe que ficou um para trás.
+ */
+function maisProximoCarregado(pedido: number, prontos: Set<number>) {
+  if (prontos.size === 0 || prontos.has(pedido)) return pedido;
+
+  for (let d = 1; d < QUADROS; d++) {
+    if (prontos.has(pedido - d)) return pedido - d;
+    if (prontos.has(pedido + d)) return pedido + d;
+  }
+  return pedido;
+}
+
 export function RoboMascote() {
   const [pronto, setPronto] = useState(false);
   const [quadroAtual, setQuadroAtual] = useState(Math.floor(QUADROS / 2));
@@ -33,6 +51,16 @@ export function RoboMascote() {
   const img = useRef<HTMLImageElement>(null);
   const camada = useRef<HTMLDivElement>(null);
   const quadro = useRef(Math.floor(QUADROS / 2));
+
+  /**
+   * Quais quadros já estão na memória do navegador.
+   *
+   * No localhost todos vinham do disco na hora, então isso não fazia
+   * falta. Servido pela rede, trocar o `src` para um quadro que ainda
+   * não chegou deixa a imagem em branco até ele baixar — foi isso que
+   * fez o giro parecer quadro a quadro na Vercel.
+   */
+  const carregados = useRef<Set<number>>(new Set());
 
   /**
    * O robô aparece assim que o PRIMEIRO quadro chega, não quando os 58
@@ -44,38 +72,49 @@ export function RoboMascote() {
    */
   useEffect(() => {
     const inicial = img.current;
-    if (inicial?.complete && inicial.naturalWidth > 0) setPronto(true);
+    if (inicial?.complete && inicial.naturalWidth > 0) {
+      carregados.current.add(quadro.current);
+      setPronto(true);
+    }
   }, []);
 
+  /**
+   * Baixa os 58 quadros de uma vez, sem esperar o primeiro.
+   *
+   * Antes eram duas frentes em série, e só começavam depois do quadro
+   * inicial chegar. Na Vercel isso levava segundos, e nesse meio-tempo
+   * o cursor pedia quadros que ainda não existiam.
+   *
+   * A Vercel serve por HTTP/2, que multiplexa: 58 pedidos de ~40 KB
+   * numa conexão só custam pouco mais que um pedido grande.
+   */
   useEffect(() => {
-    if (!pronto) return;
-
-    // Escalonado a partir do quadro do meio para fora: os vizinhos do
-    // atual são os primeiros que o cursor vai pedir.
     const meio = Math.floor(QUADROS / 2);
+
+    // Do meio para fora: os vizinhos do quadro atual são os primeiros
+    // que o cursor vai pedir.
     const ordem = Array.from({ length: QUADROS }, (_, i) => i).sort(
       (a, b) => Math.abs(a - meio) - Math.abs(b - meio),
     );
 
     let cancelado = false;
-    let indice = 0;
+    const imagens: HTMLImageElement[] = [];
 
-    const proximo = () => {
-      if (cancelado || indice >= ordem.length) return;
+    for (const i of ordem) {
       const im = new Image();
-      im.onload = proximo;
-      im.onerror = proximo;
-      im.src = caminho(ordem[indice++]);
-    };
-
-    // Duas frentes em paralelo: rápido o bastante sem sufocar a rede.
-    proximo();
-    proximo();
+      im.fetchPriority = i === meio ? "high" : "low";
+      im.onload = () => {
+        if (!cancelado) carregados.current.add(i);
+      };
+      im.src = caminho(i);
+      imagens.push(im);
+    }
 
     return () => {
       cancelado = true;
+      imagens.forEach((im) => (im.onload = null));
     };
-  }, [pronto]);
+  }, []);
 
   // Piscada. Um pouco de variação no intervalo para não virar metrônomo.
   useEffect(() => {
@@ -111,7 +150,9 @@ export function RoboMascote() {
         if (!el) return;
 
         const px = Math.min(Math.max(e.clientX / window.innerWidth, 0), 1);
-        const i = Math.round(px * (QUADROS - 1));
+        const pedido = Math.round(px * (QUADROS - 1));
+        const i = maisProximoCarregado(pedido, carregados.current);
+
         if (i !== quadro.current) {
           quadro.current = i;
           el.src = caminho(i);

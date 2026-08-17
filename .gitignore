@@ -42,3 +42,6 @@ next-env.d.ts
 
 # sobras de edicao
 *.bak
+
+# pasta temporaria do script de compressao
+.quadros-temp/
