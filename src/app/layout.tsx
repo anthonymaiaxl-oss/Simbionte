@@ -52,6 +52,17 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
+      <head>
+        {/* Começa a baixar o quadro visível do robô junto com o HTML, em
+            vez de esperar o React montar para só então pedir. */}
+        <link
+          rel="preload"
+          as="image"
+          href="/robo/verde/frame_030.webp"
+          type="image/webp"
+          fetchPriority="high"
+        />
+      </head>
       <body
         className={`${gabarito.variable} ${dmSans.variable} ${firaCode.variable} ${spaceMono.variable} antialiased`}
       >

@@ -34,24 +34,48 @@ export function RoboMascote() {
   const camada = useRef<HTMLDivElement>(null);
   const quadro = useRef(Math.floor(QUADROS / 2));
 
+  /**
+   * O robô aparece assim que o PRIMEIRO quadro chega, não quando os 58
+   * terminam. Antes ele era o último elemento da página a surgir porque
+   * esperava ~2,3 MB baixarem — e o quadro que aparece na tela é um só.
+   *
+   * Os outros 57 continuam sendo baixados por trás, sem segurar nada: o
+   * mouse só precisa deles quando começa a se mexer.
+   */
   useEffect(() => {
-    let vivo = true;
-    let faltam = QUADROS;
-    const contar = () => {
-      if (!vivo) return;
-      faltam -= 1;
-      if (faltam <= 0) setPronto(true);
-    };
-    for (let i = 0; i < QUADROS; i++) {
-      const im = new Image();
-      im.onload = contar;
-      im.onerror = contar;
-      im.src = caminho(i);
-    }
-    return () => {
-      vivo = false;
-    };
+    const inicial = img.current;
+    if (inicial?.complete && inicial.naturalWidth > 0) setPronto(true);
   }, []);
+
+  useEffect(() => {
+    if (!pronto) return;
+
+    // Escalonado a partir do quadro do meio para fora: os vizinhos do
+    // atual são os primeiros que o cursor vai pedir.
+    const meio = Math.floor(QUADROS / 2);
+    const ordem = Array.from({ length: QUADROS }, (_, i) => i).sort(
+      (a, b) => Math.abs(a - meio) - Math.abs(b - meio),
+    );
+
+    let cancelado = false;
+    let indice = 0;
+
+    const proximo = () => {
+      if (cancelado || indice >= ordem.length) return;
+      const im = new Image();
+      im.onload = proximo;
+      im.onerror = proximo;
+      im.src = caminho(ordem[indice++]);
+    };
+
+    // Duas frentes em paralelo: rápido o bastante sem sufocar a rede.
+    proximo();
+    proximo();
+
+    return () => {
+      cancelado = true;
+    };
+  }, [pronto]);
 
   // Piscada. Um pouco de variação no intervalo para não virar metrônomo.
   useEffect(() => {
@@ -116,10 +140,16 @@ export function RoboMascote() {
     <div className={`robo-palco ${pronto ? "robo-palco--pronto" : ""}`}>
       <div ref={camada} className="robo-camada">
         {/* eslint-disable-next-line @next/next/no-img-element */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           ref={img}
           src={caminho(Math.floor(QUADROS / 2))}
           alt="Simbionte, o mascote do agente de WhatsApp."
+          // Prioridade alta e decodificação síncrona: este é o quadro
+          // que a pessoa vê, e ele competia com 57 irmãos invisíveis.
+          fetchPriority="high"
+          decoding="sync"
+          onLoad={() => setPronto(true)}
           className="robo-quadro"
           draggable={false}
         />
