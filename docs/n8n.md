@@ -158,6 +158,58 @@ porque `output` é o nome que o nó de **AI Agent** já usa.
 Enquanto este não existir, o chat responde sozinho com os números do
 painel. Assim que ele subir, o chat passa a usar a IA sem mexer no site.
 
+### 3.6 `GET /webhook/usuario` — quem pode entrar
+
+Chega como `?empresaId=teste-123&email=alguem@clinica.com`.
+
+Responda a linha da tabela `usuarios`, ou vazio se não achar:
+
+```json
+{
+  "email": "alguem@clinica.com",
+  "senha_hash": "scrypt$a1b2...$c3d4...",
+  "nome": "Recepção",
+  "ativo": true
+}
+```
+
+Lista também serve — o site usa a primeira linha.
+
+**A coluna guarda o hash, nunca a senha.** Quem tiver acesso ao n8n, ou a
+um CSV exportado dele, não consegue entrar com o que está lá. E como
+quase todo mundo reusa senha entre serviços, isso deixa de ser um
+problema só deste projeto.
+
+Para gerar o valor de `senha_hash`:
+
+```bash
+node scripts/gerar-hash.mjs "a-senha-da-pessoa"
+```
+
+Copie a linha inteira, começando em `scrypt$`, e cole na coluna.
+
+Se por engano a senha for colada em texto puro, o login **recusa** — ele
+não tem como confundir uma coisa com a outra.
+
+`ativo` é opcional: sem a coluna, todo mundo é considerado ativo. Com
+ela, `false`/`0`/`nao` bloqueiam a entrada sem precisar apagar a linha.
+
+**Tabela `usuarios`** — vale criar separada em vez de pendurar as colunas
+em `mensagens` ou `agendamentos`: são dados de natureza diferente, e
+misturar faz um export de conversas levar credencial junto.
+
+| coluna | tipo |
+|---|---|
+| `empresaId` | String |
+| `email` | String |
+| `senha_hash` | String |
+| `nome` | String |
+| `ativo` | Boolean (opcional) |
+
+**Enquanto isso não existir**, a credencial fixa de `src/lib/auth.ts`
+continua entrando. Ela também é a reserva se o n8n cair — sem isso, um
+fluxo fora do ar trancaria você para fora do painel.
+
 ---
 
 ## 4. Sugestão de colunas na Data Table
