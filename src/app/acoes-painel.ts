@@ -1,6 +1,6 @@
 "use server";
 
-import { chamarN8N, configurado, ErroN8N } from "@/lib/n8n";
+import { chamarN8N, configurado, ErroN8N, faltando } from "@/lib/n8n";
 import type { Configuracao } from "@/lib/dados-painel";
 
 /**
@@ -26,7 +26,7 @@ async function tentar(
   if (!configurado()) {
     return {
       ok: false,
-      erro: "n8n não configurado. Faltam N8N_BASE_URL e N8N_TOKEN.",
+      erro: `n8n não configurado. Falta: ${faltando().join(", ")}`,
     };
   }
 
@@ -41,14 +41,20 @@ async function tentar(
   }
 }
 
-/** Manda a mensagem que a pessoa escreveu para o WhatsApp do cliente. */
+/**
+ * Manda a mensagem que a pessoa escreveu para o WhatsApp do cliente.
+ *
+ * O campo se chama `mensagem`, e nao `texto`, para casar com o payload
+ * que o fluxo do n8n ja recebe hoje. `empresaId` entra sozinho no
+ * cliente — nao precisa vir daqui.
+ */
 export async function enviarMensagem(
   conversaId: string,
   texto: string,
 ): Promise<Resultado> {
   const limpo = texto.trim();
   if (!limpo) return { ok: false, erro: "Mensagem vazia." };
-  return tentar("conversa/mensagem", { conversaId, texto: limpo });
+  return tentar("conversa/mensagem", { conversaId, mensagem: limpo });
 }
 
 /** Liga ou desliga a IA numa conversa. */
@@ -81,14 +87,14 @@ export async function perguntarAoSimbionte(
   if (!configurado()) {
     return {
       ok: false,
-      erro: "n8n não configurado. Faltam N8N_BASE_URL e N8N_TOKEN.",
+      erro: `n8n não configurado. Falta: ${faltando().join(", ")}`,
     };
   }
 
   try {
     const r = await chamarN8N<{ resposta?: string; output?: string }>(
       "simbionte/perguntar",
-      { metodo: "POST", corpo: { pergunta: limpa } },
+      { metodo: "POST", corpo: { pergunta: limpa, mensagem: limpa } },
     );
     // `output` é o nome que o nó de Agente do n8n usa por padrão; aceito
     // os dois para não obrigar a renomear campo no fluxo.

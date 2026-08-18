@@ -14,11 +14,33 @@
 const BASE = process.env.N8N_BASE_URL?.replace(/\/+$/, "") ?? "";
 const TOKEN = process.env.N8N_TOKEN ?? "";
 
+/**
+ * Qual empresa este painel atende.
+ *
+ * O fluxo do n8n e multi-empresa: todo payload leva `empresaId`. Aqui ele
+ * vem do ambiente, ou seja, UM painel por empresa — cada implantacao
+ * aponta para a sua.
+ *
+ * Se um dia o mesmo painel precisar atender varias empresas, este valor
+ * sai do ambiente e passa a vir da sessao de quem entrou. O resto do
+ * codigo nao muda: `empresaId` ja e injetado num lugar so, logo abaixo.
+ */
+const EMPRESA = process.env.N8N_EMPRESA_ID ?? "";
+
 /** Quanto esperar antes de desistir de uma chamada, em ms. */
 const LIMITE = 8000;
 
 export function configurado() {
-  return BASE.length > 0 && TOKEN.length > 0;
+  return BASE.length > 0 && TOKEN.length > 0 && EMPRESA.length > 0;
+}
+
+/** O que falta, para o painel dizer na tela em vez de so falhar. */
+export function faltando(): string[] {
+  const f: string[] = [];
+  if (!BASE) f.push("N8N_BASE_URL");
+  if (!TOKEN) f.push("N8N_TOKEN");
+  if (!EMPRESA) f.push("N8N_EMPRESA_ID");
+  return f;
 }
 
 export class ErroN8N extends Error {
@@ -51,15 +73,25 @@ export async function chamarN8N<T>(
   } = {},
 ): Promise<T> {
   if (!configurado()) {
-    throw new ErroN8N("N8N_BASE_URL ou N8N_TOKEN não configurados");
+    throw new ErroN8N(`Falta configurar: ${faltando().join(", ")}`);
   }
 
   const { metodo = "GET", corpo, revalidar = 0 } = opcoes;
   const corte = AbortSignal.timeout(LIMITE);
 
+  // `empresaId` entra aqui, num lugar so, e nao em cada chamada: assim
+  // nao existe endpoint que esqueceu de mandar. Em GET vai na query,
+  // porque GET com corpo e ignorado por boa parte da infra.
+  const url = new URL(`${BASE}/webhook/${caminho}`);
+  if (metodo === "GET") url.searchParams.set("empresaId", EMPRESA);
+  const corpoFinal =
+    metodo === "POST"
+      ? { empresaId: EMPRESA, ...(corpo as Record<string, unknown>) }
+      : undefined;
+
   let resposta: Response;
   try {
-    resposta = await fetch(`${BASE}/webhook/${caminho}`, {
+    resposta = await fetch(url, {
       method: metodo,
       headers: {
         "Content-Type": "application/json",
@@ -67,7 +99,7 @@ export async function chamarN8N<T>(
         // este mesmo nome de header.
         "X-Simbionte-Token": TOKEN,
       },
-      body: corpo ? JSON.stringify(corpo) : undefined,
+      body: corpoFinal ? JSON.stringify(corpoFinal) : undefined,
       signal: corte,
       // GET com revalidar > 0 usa o cache do Next; POST nunca cacheia.
       ...(metodo === "GET" && revalidar > 0

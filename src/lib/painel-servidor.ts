@@ -1,6 +1,6 @@
 import "server-only";
 
-import { chamarN8N, configurado, ErroN8N } from "@/lib/n8n";
+import { chamarN8N, configurado, ErroN8N, faltando } from "@/lib/n8n";
 import {
   CONFIGURACAO,
   PAINEL_EXEMPLO,
@@ -153,7 +153,7 @@ export async function buscarPainel(): Promise<DadosPainel> {
     return {
       ...PAINEL_EXEMPLO,
       origem: "exemplo",
-      aviso: "N8N_BASE_URL e N8N_TOKEN não estão definidos.",
+      aviso: `Falta configurar: ${faltando().join(", ")}.`,
     };
   }
 

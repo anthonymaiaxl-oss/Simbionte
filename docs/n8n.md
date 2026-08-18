@@ -22,7 +22,17 @@ Copie `.env.example` para `.env.local` e preencha:
 ```
 N8N_BASE_URL=https://SUACONTA.app.n8n.cloud
 N8N_TOKEN=<um segredo longo e aleatório>
+N8N_EMPRESA_ID=teste-123
 ```
+
+`N8N_EMPRESA_ID` porque o fluxo é multi-empresa: todo payload leva
+`empresaId`. O cliente injeta esse valor sozinho, em **todas** as
+chamadas — em `POST` vai no corpo, em `GET` na query. Nenhum endpoint
+precisa lembrar de mandar.
+
+Hoje é **um painel por empresa**. Se o mesmo painel tiver que atender
+várias, o valor sai do ambiente e passa a vir da sessão de quem entrou —
+e só o `src/lib/n8n.ts` muda.
 
 Sem elas o painel sobe com os dados de exemplo e mostra o selo
 **"Dados de exemplo"** — ele não quebra, mas também não mente.
@@ -52,7 +62,7 @@ painel trata como falha e cai no exemplo.
 
 ### 3.1 `GET /webhook/painel` — o painel inteiro
 
-Uma chamada só traz tudo. Responda:
+Chega como `?empresaId=teste-123`. Uma chamada só traz tudo. Responda:
 
 ```json
 {
@@ -107,7 +117,11 @@ que faltar vira vazio ou zero — não quebra a tela.
 
 Recebe:
 ```json
-{ "conversaId": "5511999999999", "texto": "Já separei o seu pedido." }
+{
+  "empresaId": "teste-123",
+  "conversaId": "5511999999999",
+  "mensagem": "Já separei o seu pedido."
+}
 ```
 Deve mandar pela Meta Cloud API e gravar na Data Table.
 Responda qualquer JSON (ex.: `{"ok": true}`).
@@ -115,7 +129,7 @@ Responda qualquer JSON (ex.: `{"ok": true}`).
 ### 3.3 `POST /webhook/conversa/pausa` — ligar/desligar a IA
 
 ```json
-{ "conversaId": "5511999999999", "pausado": true }
+{ "empresaId": "teste-123", "conversaId": "5511999999999", "pausado": true }
 ```
 Grave o campo na Data Table. **O fluxo que responde as mensagens que
 chegam precisa checar esse campo antes de responder** — senão o botão
@@ -128,8 +142,16 @@ Recebe o objeto `configuracao` inteiro (item 3.1).
 ### 3.5 `POST /webhook/simbionte/perguntar` — o chat da Hero
 
 ```json
-{ "pergunta": "Quantas conversas estão abertas agora? [modo: analisar]" }
+{
+  "empresaId": "teste-123",
+  "pergunta": "Quantas conversas estão abertas agora? [modo: analisar]",
+  "mensagem": "Quantas conversas estão abertas agora? [modo: analisar]"
+}
 ```
+
+O mesmo texto vai em `pergunta` e em `mensagem`: assim o webhook serve
+tanto a um nó novo quanto a um que já espera `mensagem`, como o do fluxo
+atual.
 Responda `{"resposta": "..."}` ou `{"output": "..."}` — aceito os dois,
 porque `output` é o nome que o nó de **AI Agent** já usa.
 
@@ -140,12 +162,16 @@ painel. Assim que ele subir, o chat passa a usar a IA sem mexer no site.
 
 ## 4. Sugestão de colunas na Data Table
 
-**conversas**: `id`, `nome`, `telefone`, `estado`, `botPausado`,
-`naoLidas`, `ultimaMensagem`, `quando`
+Todas com `empresaId` na primeira coluna, e todo filtro passando por ela
+— é o que separa uma empresa da outra.
 
-**mensagens**: `id`, `conversaId`, `de`, `texto`, `hora`, `criadoEm`
+**conversas**: `empresaId`, `id`, `nome`, `telefone`, `estado`,
+`botPausado`, `naoLidas`, `ultimaMensagem`, `quando`
 
-**config**: linha única com os campos de `configuracao`
+**mensagens**: `empresaId`, `id`, `conversaId`, `de`, `texto`, `hora`,
+`criadoEm`
+
+**config**: uma linha por `empresaId`
 
 ---
 
@@ -159,7 +185,7 @@ dev`, prefixado com `[painel]`.
 Teste um webhook direto:
 
 ```bash
-curl -H "X-Simbionte-Token: SEU_TOKEN" https://SUACONTA.app.n8n.cloud/webhook/painel
+curl -H "X-Simbionte-Token: SEU_TOKEN" "https://SUACONTA.app.n8n.cloud/webhook/painel?empresaId=teste-123"
 ```
 
 ## 6. O que ainda falta
