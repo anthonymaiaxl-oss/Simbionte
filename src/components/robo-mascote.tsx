@@ -8,8 +8,13 @@ import olhosPorQuadro from "../../public/robo/verde/olhos.json";
  *
  * Fica parado na Hero: rola junto com a página, sem ancorar no canto.
  *
- * O cursor escolhe o quadro (eixo X) e desloca de leve na vertical
- * (eixo Y). E ele pisca sozinho: pálpebras posicionadas a partir das
+ * O cursor escolhe o quadro pelo eixo X, e só por ele: a cabeça gira
+ * acompanhando o mouse. O corpo NÃO se mexe. Havia um deslocamento
+ * vertical seguindo o eixo Y, mas ele empurrava a imagem inteira em vez
+ * de mover a cabeça — e ao subir o robô descolava da linha do chat, que
+ * é justamente onde o corte do corpo dele precisa encostar.
+ *
+ * E ele pisca sozinho: pálpebras posicionadas a partir das
  * coordenadas reais dos olhos EM CADA QUADRO — a cabeça gira, então uma
  * posição fixa erraria em quase todos.
  */
@@ -49,7 +54,6 @@ export function RoboMascote() {
   const [piscando, setPiscando] = useState(false);
 
   const img = useRef<HTMLImageElement>(null);
-  const camada = useRef<HTMLDivElement>(null);
   const quadro = useRef(Math.floor(QUADROS / 2));
 
   /**
@@ -139,7 +143,7 @@ export function RoboMascote() {
     };
   }, []);
 
-  // Cursor: escolhe o quadro e desloca de leve na vertical.
+  // Cursor: escolhe o quadro. Eixo X apenas.
   useEffect(() => {
     let frame = 0;
 
@@ -159,12 +163,6 @@ export function RoboMascote() {
           // O estado só existe para as pálpebras acompanharem a cabeça.
           setQuadroAtual(i);
         }
-
-        const c = camada.current;
-        if (c) {
-          const q = Math.min(Math.max(e.clientY / window.innerHeight, 0), 1);
-          c.style.transform = `translateY(${(((q - 0.5) * 2) * 12).toFixed(2)}px)`;
-        }
       });
     };
 
@@ -179,7 +177,7 @@ export function RoboMascote() {
 
   return (
     <div className={`robo-palco ${pronto ? "robo-palco--pronto" : ""}`}>
-      <div ref={camada} className="robo-camada">
+      <div className="robo-camada">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           ref={img}

@@ -19,6 +19,17 @@ export function proxy(request: NextRequest) {
   }
 
   if (!temSessao) {
+    // API responde 401, nunca redireciona. Um fetch() que segue o
+    // redirecionamento recebe o HTML da tela de entrada e estoura ao
+    // tentar ler JSON — o erro que aparece é "Unexpected token '<'", que
+    // não diz nada sobre sessão expirada.
+    if (caminho.startsWith("/api/")) {
+      return NextResponse.json(
+        { erro: "Sessão expirada. Entre de novo." },
+        { status: 401 },
+      );
+    }
+
     const destino = request.nextUrl.clone();
     destino.pathname = "/entrar";
     return NextResponse.redirect(destino);

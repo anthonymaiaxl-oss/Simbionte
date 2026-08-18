@@ -356,10 +356,11 @@
   opacity: 1;
 }
 
+/* Sem transition de transform: nada mais move esta camada. O robo fica
+   fixo no palco e so a cabeca gira, trocando o quadro. */
 .robo-camada {
   position: absolute;
   inset: 0;
-  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .robo-quadro {
@@ -391,7 +392,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .robo-camada { transition: none; transform: none !important; }
   .robo-palpebra { transition: none; transform: scaleY(0) !important; }
 }
 
@@ -2022,4 +2022,215 @@ html.lenis body {
 @media (prefers-reduced-motion: reduce) {
   .anima-ripple,
   .anima-orbita { animation: none; }
+}
+
+/* ===============================================================
+   FIO DO CHAT, GRAVACAO E ORIGEM DOS DADOS
+   =============================================================== */
+
+/* -- Fio de mensagens do chat da Hero --
+   Nasce so depois da primeira mensagem. Rola dentro de si mesmo: a
+   pagina nao pode crescer sem fim porque alguem conversou muito. */
+.chat__fio {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 22rem;
+  overflow-y: auto;
+  padding: 0.9rem 0.25rem;
+  margin-bottom: 0.6rem;
+  text-align: left;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-borda) transparent;
+}
+
+.chat__msg {
+  max-width: 82%;
+  border: 1px solid var(--color-borda);
+  border-radius: 16px;
+  padding: 0.65rem 0.9rem;
+  animation: entrar-balao 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Quem pergunta a direita, quem responde a esquerda: o lado ja diz de
+   quem e a fala antes de ler qualquer coisa. */
+.chat__msg--voce {
+  align-self: flex-end;
+  border-color: color-mix(in srgb, var(--color-simbionte) 40%, transparent);
+  background: color-mix(in srgb, var(--color-simbionte) 10%, transparent);
+}
+
+.chat__msg--simbionte {
+  align-self: flex-start;
+  background: var(--color-superficie);
+}
+
+.chat__msg-texto {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--color-marfim);
+  white-space: pre-wrap;
+}
+
+.chat__msg-anexos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.chat__msg-anexo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--color-borda);
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.8125rem;
+  color: var(--color-bruma);
+}
+
+.chat__msg-anexo-tam {
+  font-family: var(--fonte-space-mono), ui-monospace, monospace;
+  font-size: 0.7rem;
+  opacity: 0.7;
+  margin-left: 0.4rem;
+}
+
+/* O player nativo: o navegador ja resolve play, barra e volume, e um
+   player proprio aqui seria enfeite com bug. So encolho a altura para
+   nao dominar o balao. */
+.chat__audio {
+  width: 100%;
+  max-width: 17rem;
+  height: 36px;
+}
+
+/* -- Gravacao -- */
+.chat__acao--gravando {
+  background: color-mix(in srgb, var(--color-falha) 18%, transparent);
+  color: var(--color-falha);
+}
+
+.chat__gravando {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9375rem;
+  color: var(--color-falha);
+  font-family: var(--fonte-space-mono), ui-monospace, monospace;
+}
+
+.chat__gravando-ponto {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--color-falha);
+  animation: pulsar-gravacao 1.1s ease-in-out infinite;
+}
+
+@keyframes pulsar-gravacao {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.35; transform: scale(0.82); }
+}
+
+.chat__erro {
+  padding: 0.15rem 0.35rem 0.4rem;
+  font-size: 0.8125rem;
+  color: var(--color-falha);
+}
+
+/* -- Falhas no painel -- */
+.responder__falha {
+  margin: 0.5rem 0;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--color-falha) 45%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-falha) 10%, transparent);
+  font-size: 0.875rem;
+  color: var(--color-falha);
+}
+
+.agente__aviso--falha { color: var(--color-falha); }
+
+/* -- Barra de origem dos dados --
+   Diz se o painel esta vendo o n8n ou o exemplo. Numero de operacao sem
+   procedencia e pior que numero nenhum: alguem decide com base nele. */
+.origem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 1.1rem;
+}
+
+.origem__selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--color-simbionte) 55%, transparent);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.75rem;
+  font-family: var(--fonte-space-mono), ui-monospace, monospace;
+  letter-spacing: 0.06em;
+  color: var(--color-simbionte-claro);
+}
+
+.origem__selo--exemplo {
+  border-color: color-mix(in srgb, var(--color-alerta) 55%, transparent);
+  color: var(--color-alerta);
+}
+
+.origem__ponto {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: currentColor;
+  animation: pulsar-gravacao 2.4s ease-in-out infinite;
+}
+
+.origem__motivo {
+  font-size: 0.75rem;
+  color: var(--color-bruma);
+  max-width: 32rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.origem__falha {
+  font-size: 0.75rem;
+  color: var(--color-falha);
+}
+
+/* margin-left:auto empurra para a direita sem precisar de wrapper. */
+.origem__atualizar {
+  margin-left: auto;
+  min-height: 36px;
+  border: 1px solid var(--color-borda);
+  border-radius: 999px;
+  padding: 0 0.9rem;
+  font-size: 0.8125rem;
+  color: var(--color-bruma);
+  cursor: pointer;
+  transition: border-color 180ms ease, color 180ms ease;
+}
+
+.origem__atualizar:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--color-simbionte) 60%, transparent);
+  color: var(--color-marfim);
+}
+
+.origem__atualizar:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat__msg { animation: none; }
+  .chat__gravando-ponto,
+  .origem__ponto { animation: none; }
 }

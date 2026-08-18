@@ -1,4 +1,5 @@
 import { sair } from "@/app/acoes-auth";
+import { buscarPainel } from "@/lib/painel-servidor";
 import { ChatSimbionte } from "@/components/chat-simbionte";
 import { FaixaEstado } from "@/components/faixa-estado";
 import { FundoHero } from "@/components/fundo-hero";
@@ -7,7 +8,19 @@ import { Painel } from "@/components/painel";
 import { RoboMascote } from "@/components/robo-mascote";
 import { AnimatedText } from "@/components/ui/animated-text";
 
-export default function Home() {
+/**
+ * Componente de servidor: fala com o n8n aqui, do lado de cá, e entrega
+ * tudo pronto. Fosse o cliente a buscar, a tela apareceria vazia e
+ * preencheria depois — e o token do n8n teria que sair daqui.
+ *
+ * `force-dynamic` porque painel de operação não pode vir congelado do
+ * build: seria a conversa de ontem.
+ */
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const dados = await buscarPainel();
+
   return (
     <>
       {/* z-40 fica acima do robô (z-30): se ele encostar no cabeçalho em
@@ -64,12 +77,12 @@ export default function Home() {
           {/* Encosta no robô de propósito: o corpo dele é cortado nesta
               linha, então ele emerge de dentro da conversa. */}
           <div className="-mt-1 w-full">
-            <ChatSimbionte />
+            <ChatSimbionte dados={dados} />
           </div>
         </section>
 
         <FaixaEstado />
-        <Painel />
+        <Painel inicial={dados} />
       </main>
 
       <footer className="mx-auto max-w-6xl px-6 py-10">

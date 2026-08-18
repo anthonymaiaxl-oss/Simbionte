@@ -1,26 +1,28 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useReducedMotion } from "motion/react";
+import { alternarPausa } from "@/app/acoes-painel";
 import { Agente } from "@/components/agente";
 import { Chips } from "@/components/chips";
 import { Contatos } from "@/components/contatos";
 import { ConversaAberta } from "@/components/conversa-aberta";
 import { DockAbas } from "@/components/dock-abas";
 import {
-  CONVERSAS,
   ESTADOS,
-  NUMEROS,
   type Conversa,
+  type DadosPainel,
   type EstadoConversa,
+  type Numeros as TipoNumeros,
 } from "@/lib/dados-painel";
 
 /**
  * Painel de operação: números e conversas.
  *
- * Duas abas porque são dois modos de uso diferentes — "como foi o dia"
- * e "quem precisa de mim agora" — e misturar os dois numa tela só faz o
- * urgente sumir no meio do balanço.
+ * Os dados chegam prontos do servidor, que já falou com o n8n. Se o n8n
+ * estiver fora ou sem configurar, vem o exemplo com `origem: "exemplo"`
+ * — e a tela avisa, porque painel de operação mostrando número inventado
+ * sem dizer que é inventado é pior do que painel vazio.
  *
  * As conversas abrem primeiro na ordem de urgência, não por horário:
  * quem está esperando resposta humana vem antes de quem já foi atendido.
@@ -28,8 +30,8 @@ import {
 
 type Aba = "conversas" | "numeros" | "contatos" | "agente";
 
-/* O id continua "numeros" — é a chave da rota e do aria-controls. Só o
-   rótulo mudou para "Painel". */
+/* O id continua "numeros" — é a chave do aria-controls. Só o rótulo
+   mudou para "Painel". */
 const ABAS: { id: Aba; rotulo: string }[] = [
   { id: "conversas", rotulo: "Conversas" },
   { id: "numeros", rotulo: "Painel" },
@@ -46,55 +48,137 @@ const FILTROS: { id: EstadoConversa | "todas"; rotulo: string }[] = [
   { id: "finalizada", rotulo: "Finalizadas" },
 ];
 
-export function Painel() {
+export function Painel({ inicial }: { inicial: DadosPainel }) {
   const [aba, setAba] = useState<Aba>("conversas");
+  const [dados, setDados] = useState(inicial);
+  const [lendo, setLendo] = useState(false);
+  const [falhaAoLer, setFalhaAoLer] = useState<string | null>(null);
+
+  const atualizar = async () => {
+    setLendo(true);
+    setFalhaAoLer(null);
+    try {
+      const r = await fetch("/api/painel", { cache: "no-store" });
+      if (r.status === 401) {
+        // Sessão caiu enquanto a aba estava aberta: recarregar leva para
+        // a tela de entrada pelo proxy.
+        window.location.reload();
+        return;
+      }
+      if (!r.ok) throw new Error(`resposta ${r.status}`);
+      setDados((await r.json()) as DadosPainel);
+    } catch (e) {
+      setFalhaAoLer(e instanceof Error ? e.message : "Não consegui atualizar.");
+    } finally {
+      setLendo(false);
+    }
+  };
 
   return (
     <section className="painel" aria-label="Painel de operação">
       <div className="painel__interno">
+        <BarraOrigem
+          dados={dados}
+          lendo={lendo}
+          falha={falhaAoLer}
+          aoAtualizar={atualizar}
+        />
+
         <DockAbas itens={ABAS} atual={aba} aoTrocar={setAba} />
 
         {/* A key força o React a remontar ao trocar de aba, e com isso a
             animação de entrada — e a contagem dos números — roda de
             novo. Sem ela a troca é seca. */}
         <div key={aba} className="painel__area">
-          {aba === "conversas" && <Conversas />}
-          {aba === "numeros" && <Numeros />}
-          {aba === "contatos" && <Contatos />}
-          {aba === "agente" && <Agente />}
+          {aba === "conversas" && (
+            <Conversas conversas={dados.conversas} aoMudar={atualizar} />
+          )}
+          {aba === "numeros" && <Numeros numeros={dados.numeros} />}
+          {aba === "contatos" && <Contatos contatos={dados.contatos} />}
+          {aba === "agente" && <Agente configuracao={dados.configuracao} />}
         </div>
       </div>
     </section>
   );
 }
 
+/**
+ * Diz de onde veio o dado e deixa recarregar.
+ *
+ * Quando está em exemplo o aviso é obrigatório: alguém olhando "2
+ * pendentes" precisa saber se são dois clientes esperando de verdade ou
+ * um número de mentira.
+ */
+function BarraOrigem({
+  dados,
+  lendo,
+  falha,
+  aoAtualizar,
+}: {
+  dados: DadosPainel;
+  lendo: boolean;
+  falha: string | null;
+  aoAtualizar: () => void;
+}) {
+  const exemplo = dados.origem === "exemplo";
+
+  return (
+    <div className="origem">
+      <span className={`origem__selo ${exemplo ? "origem__selo--exemplo" : ""}`}>
+        <span className="origem__ponto" aria-hidden="true" />
+        {exemplo ? "Dados de exemplo" : "Ao vivo pelo n8n"}
+      </span>
+
+      {exemplo && dados.aviso && (
+        <span className="origem__motivo" title={dados.aviso}>
+          {dados.aviso}
+        </span>
+      )}
+
+      {falha && <span className="origem__falha">{falha}</span>}
+
+      <button
+        type="button"
+        onClick={aoAtualizar}
+        disabled={lendo}
+        className="origem__atualizar"
+      >
+        {lendo ? "Atualizando…" : "Atualizar"}
+      </button>
+    </div>
+  );
+}
+
 /* -- Conversas ------------------------------------------------ */
 
-function Conversas() {
+function Conversas({
+  conversas,
+  aoMudar,
+}: {
+  conversas: Conversa[];
+  aoMudar: () => void;
+}) {
   const [filtro, setFiltro] = useState<EstadoConversa | "todas">("todas");
   const [busca, setBusca] = useState("");
   const [abertaId, setAbertaId] = useState<string | null>(null);
-  const [pausados, setPausados] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(CONVERSAS.map((c) => [c.id, c.botPausado])),
-  );
 
-  const aberta = CONVERSAS.find((c) => c.id === abertaId) ?? null;
+  const aberta = conversas.find((c) => c.id === abertaId) ?? null;
 
   const lista = useMemo(() => {
     const termo = busca.trim().toLowerCase();
-    return CONVERSAS.filter((c) => {
-      if (filtro !== "todas" && c.estado !== filtro) return false;
-      if (!termo) return true;
-      // Busca por nome e por telefone, ignorando a formatação do número.
-      const numero = c.telefone.replace(/\D/g, "");
-      return (
-        c.nome.toLowerCase().includes(termo) ||
-        numero.includes(termo.replace(/\D/g, ""))
-      );
-    }).sort(
-      (a, b) => ESTADOS[a.estado].urgencia - ESTADOS[b.estado].urgencia,
-    );
-  }, [filtro, busca]);
+    return conversas
+      .filter((c) => {
+        if (filtro !== "todas" && c.estado !== filtro) return false;
+        if (!termo) return true;
+        // Busca por nome e por telefone, ignorando a formatação do número.
+        const numero = c.telefone.replace(/\D/g, "");
+        return (
+          c.nome.toLowerCase().includes(termo) ||
+          numero.includes(termo.replace(/\D/g, ""))
+        );
+      })
+      .sort((a, b) => ESTADOS[a.estado].urgencia - ESTADOS[b.estado].urgencia);
+  }, [conversas, filtro, busca]);
 
   const filtrosComConta = useMemo(
     () =>
@@ -102,10 +186,10 @@ function Conversas() {
         ...f,
         conta:
           f.id === "todas"
-            ? CONVERSAS.length
-            : CONVERSAS.filter((c) => c.estado === f.id).length,
+            ? conversas.length
+            : conversas.filter((c) => c.estado === f.id).length,
       })),
-    [],
+    [conversas],
   );
 
   if (aberta) {
@@ -117,8 +201,7 @@ function Conversas() {
         <ConversaAberta
           key={aberta.id}
           conversa={aberta}
-          pausado={pausados[aberta.id]}
-          aoPausar={(v) => setPausados((p) => ({ ...p, [aberta.id]: v }))}
+          aoMudar={aoMudar}
           aoVoltar={() => setAbertaId(null)}
         />
       </div>
@@ -151,17 +234,23 @@ function Conversas() {
 
       {lista.length === 0 ? (
         <p className="vazio">
-          Nenhuma conversa com esse filtro.{" "}
-          <button
-            type="button"
-            onClick={() => {
-              setFiltro("todas");
-              setBusca("");
-            }}
-            className="vazio__acao"
-          >
-            Ver todas
-          </button>
+          {conversas.length === 0 ? (
+            "Nenhuma conversa ainda. Assim que alguém chamar o número, ela aparece aqui."
+          ) : (
+            <>
+              Nenhuma conversa com esse filtro.{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  setFiltro("todas");
+                  setBusca("");
+                }}
+                className="vazio__acao"
+              >
+                Ver todas
+              </button>
+            </>
+          )}
         </p>
       ) : (
         <ul className="conversas">
@@ -170,10 +259,7 @@ function Conversas() {
               key={c.id}
               conversa={c}
               indice={i}
-              pausado={pausados[c.id]}
-              aoAlternar={() =>
-                setPausados((p) => ({ ...p, [c.id]: !p[c.id] }))
-              }
+              aoMudar={aoMudar}
               aoAbrir={() => setAbertaId(c.id)}
             />
           ))}
@@ -185,18 +271,37 @@ function Conversas() {
 
 function LinhaConversa({
   conversa,
-  pausado,
-  aoAlternar,
   aoAbrir,
+  aoMudar,
   indice,
 }: {
   conversa: Conversa;
-  pausado: boolean;
-  aoAlternar: () => void;
   aoAbrir: () => void;
+  aoMudar: () => void;
   indice: number;
 }) {
   const estado = ESTADOS[conversa.estado];
+  const [pendente, comecar] = useTransition();
+
+  // Otimista: o botão responde na hora e volta atrás se o n8n recusar.
+  // Esperar a ida e volta faz o clique parecer que não funcionou.
+  const [pausado, setPausado] = useState(conversa.botPausado);
+  const [erro, setErro] = useState(false);
+
+  const alternar = () => {
+    const novo = !pausado;
+    setPausado(novo);
+    setErro(false);
+    comecar(async () => {
+      const r = await alternarPausa(conversa.id, novo);
+      if (!r.ok) {
+        setPausado(!novo);
+        setErro(true);
+      } else {
+        aoMudar();
+      }
+    });
+  };
 
   return (
     <li className="conversa" style={{ ["--ordem" as string]: indice }}>
@@ -245,11 +350,16 @@ function LinhaConversa({
 
         <button
           type="button"
-          onClick={aoAlternar}
+          onClick={alternar}
+          disabled={pendente}
           aria-pressed={pausado}
           className={`pausa ${pausado ? "pausa--ligada" : ""}`}
         >
-          {pausado ? "Bot pausado" : "Pausar bot"}
+          {erro
+            ? "Não deu — tentar de novo"
+            : pausado
+              ? "Bot pausado"
+              : "Pausar bot"}
         </button>
       </span>
     </li>
@@ -268,7 +378,7 @@ function iniciais(nome: string) {
 
 /* -- Números -------------------------------------------------- */
 
-const CARTOES: { chave: keyof typeof NUMEROS; rotulo: string; alerta?: boolean }[] =
+const CARTOES: { chave: keyof TipoNumeros; rotulo: string; alerta?: boolean }[] =
   [
     { chave: "recebidas", rotulo: "Mensagens recebidas" },
     { chave: "respondidasIA", rotulo: "Respondidas pela IA" },
@@ -326,11 +436,11 @@ function Contador({ ate }: { ate: number }) {
   return <>{semMovimento ? ate : valor}</>;
 }
 
-function Numeros() {
+function Numeros({ numeros }: { numeros: TipoNumeros }) {
   return (
     <div id="painel-numeros" role="tabpanel" className="numeros">
       {CARTOES.map((c, i) => {
-        const valor = NUMEROS[c.chave];
+        const valor = numeros[c.chave];
         // Só pinta de âmbar o que realmente pede ação: zero pendente é
         // boa notícia e não deve gritar.
         const pedeAcao = c.alerta && valor > 0;
@@ -340,7 +450,9 @@ function Numeros() {
             className="cartao"
             style={{ ["--ordem" as string]: i }}
           >
-            <p className={`cartao__valor ${pedeAcao ? "cartao__valor--atencao" : ""}`}>
+            <p
+              className={`cartao__valor ${pedeAcao ? "cartao__valor--atencao" : ""}`}
+            >
               <Contador ate={valor} />
             </p>
             <p className="cartao__rotulo">{c.rotulo}</p>
@@ -356,13 +468,13 @@ function Numeros() {
         style={{ ["--ordem" as string]: CARTOES.length }}
       >
         <p className="cartao__valor">
-          <Contador ate={NUMEROS.taxaAutomacao} />%
+          <Contador ate={numeros.taxaAutomacao} />%
         </p>
         <p className="cartao__rotulo">Resolvidas sem humano</p>
         <span
           className="cartao__barra"
           aria-hidden="true"
-          style={{ ["--parte" as string]: `${NUMEROS.taxaAutomacao}%` }}
+          style={{ ["--parte" as string]: `${numeros.taxaAutomacao}%` }}
         />
       </article>
     </div>

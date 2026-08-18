@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { CONFIGURACAO } from "@/lib/dados-painel";
+import { useState, useTransition } from "react";
+import { salvarConfiguracao } from "@/app/acoes-painel";
+import type { Configuracao } from "@/lib/dados-painel";
 
 /**
  * Como o agente se comporta.
@@ -11,11 +12,13 @@ import { CONFIGURACAO } from "@/lib/dados-painel";
  * ignorá-lo.
  */
 
-export function Agente() {
-  const [forma, setForma] = useState(CONFIGURACAO);
+export function Agente({ configuracao }: { configuracao: Configuracao }) {
+  const [forma, setForma] = useState(configuracao);
   const [salvo, setSalvo] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+  const [gravando, comecar] = useTransition();
 
-  const mudou = JSON.stringify(forma) !== JSON.stringify(CONFIGURACAO);
+  const mudou = JSON.stringify(forma) !== JSON.stringify(configuracao);
 
   const alterar = <K extends keyof typeof forma>(
     campo: K,
@@ -30,8 +33,12 @@ export function Agente() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          // TODO: gravar na tabela de configuração do agente.
-          setSalvo(true);
+          setErro(null);
+          comecar(async () => {
+            const r = await salvarConfiguracao(forma);
+            if (r.ok) setSalvo(true);
+            else setErro(r.erro);
+          });
         }}
         className="agente"
       >
@@ -123,17 +130,28 @@ export function Agente() {
         </div>
 
         <div className="agente__rodape">
-          <button type="submit" disabled={!mudou} className="assumir">
-            Salvar alterações
+          <button
+            type="submit"
+            disabled={!mudou || gravando}
+            className="assumir"
+          >
+            {gravando ? "Salvando…" : "Salvar alterações"}
           </button>
           {/* O botão diz "Salvar alterações" e a confirmação diz
-              "Alterações salvas": a ação mantém o nome pelo fluxo. */}
-          <p aria-live="polite" className="agente__aviso">
-            {salvo
-              ? "Alterações salvas."
-              : mudou
-                ? "Você tem alterações não salvas."
-                : ""}
+              "Alterações salvas": a ação mantém o nome pelo fluxo.
+              A falha vem no mesmo lugar do sucesso — quem acabou de
+              clicar está olhando aqui, não em outro canto da tela. */}
+          <p
+            aria-live="polite"
+            className={`agente__aviso ${erro ? "agente__aviso--falha" : ""}`}
+          >
+            {erro
+              ? `Não salvou: ${erro}`
+              : salvo
+                ? "Alterações salvas."
+                : mudou
+                  ? "Você tem alterações não salvas."
+                  : ""}
           </p>
         </div>
       </form>

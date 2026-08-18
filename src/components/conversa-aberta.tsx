@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { alternarPausa, enviarMensagem } from "@/app/acoes-painel";
 import {
   AUTORES,
   ESTADOS,
@@ -43,18 +44,41 @@ function IADigitando() {
 
 export function ConversaAberta({
   conversa,
-  pausado,
-  aoPausar,
+  aoMudar,
   aoVoltar,
 }: {
   conversa: Conversa;
-  pausado: boolean;
-  aoPausar: (valor: boolean) => void;
+  /** Avisa o painel que algo mudou, para ele reler do n8n. */
+  aoMudar: () => void;
   aoVoltar: () => void;
 }) {
   const [assumido, setAssumido] = useState(false);
   const [mensagens, setMensagens] = useState<Mensagem[]>(conversa.mensagens);
   const [texto, setTexto] = useState("");
+  const [pausado, setPausado] = useState(conversa.botPausado);
+  const [enviando, comecarEnvio] = useTransition();
+  const [falha, setFalha] = useState<string | null>(null);
+
+  /**
+   * Liga ou desliga a IA.
+   *
+   * Otimista: a tela muda na hora e volta atrás se o n8n recusar. Numa
+   * conversa ao vivo, esperar a ida e volta faz o operador clicar de
+   * novo achando que não pegou — e dois cliques viram duas trocas.
+   */
+  const trocarPausa = (valor: boolean) => {
+    setPausado(valor);
+    setFalha(null);
+    comecarEnvio(async () => {
+      const r = await alternarPausa(conversa.id, valor);
+      if (!r.ok) {
+        setPausado(!valor);
+        setFalha(r.erro);
+      } else {
+        aoMudar();
+      }
+    });
+  };
 
   const fim = useRef<HTMLDivElement>(null);
   const campo = useRef<HTMLTextAreaElement>(null);
@@ -99,24 +123,25 @@ export function ConversaAberta({
   const assumir = () => {
     setAssumido(true);
     // Assumir sem pausar deixaria o bot respondendo por cima de você.
-    aoPausar(true);
+    trocarPausa(true);
     window.setTimeout(() => campo.current?.focus(), 60);
   };
 
   const devolver = () => {
     setAssumido(false);
-    aoPausar(false);
+    trocarPausa(false);
     setTexto("");
   };
 
   const enviar = () => {
     const conteudo = texto.trim();
     if (!conteudo) return;
-    // TODO: enviar para o WhatsApp pela API do agente.
+
+    const id = `local-${proximoId.current++}`;
     setMensagens((m) => [
       ...m,
       {
-        id: `local-${proximoId.current++}`,
+        id,
         de: "humano",
         texto: conteudo,
         hora: new Date().toLocaleTimeString("pt-BR", {
@@ -126,7 +151,22 @@ export function ConversaAberta({
       },
     ]);
     setTexto("");
+    setFalha(null);
     campo.current?.focus();
+
+    comecarEnvio(async () => {
+      const r = await enviarMensagem(conversa.id, conteudo);
+      if (!r.ok) {
+        // Tira o balão e devolve o texto ao campo: mensagem que não saiu
+        // não pode ficar no histórico parecendo entregue, e a pessoa não
+        // pode perder o que escreveu.
+        setMensagens((m) => m.filter((x) => x.id !== id));
+        setTexto(conteudo);
+        setFalha(r.erro);
+      } else {
+        aoMudar();
+      }
+    });
   };
 
   const estado = ESTADOS[conversa.estado];
@@ -164,7 +204,8 @@ export function ConversaAberta({
         <span className="aberta__acoes">
           <button
             type="button"
-            onClick={() => aoPausar(!pausado)}
+            onClick={() => trocarPausa(!pausado)}
+            disabled={enviando}
             aria-pressed={pausado}
             className={`pausa ${pausado ? "pausa--ligada" : ""}`}
           >
@@ -207,6 +248,12 @@ export function ConversaAberta({
 
         <div ref={fim} />
       </div>
+
+      {falha && (
+        <p className="responder__falha" role="alert">
+          {falha}
+        </p>
+      )}
 
       {assumido ? (
         <div className="responder">

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Chips } from "@/components/chips";
-import { CONTATOS } from "@/lib/dados-painel";
+import type { Contato } from "@/lib/dados-painel";
 
 /**
  * Quem já falou com o agente.
@@ -20,7 +20,7 @@ const ORDENS: { id: Ordem; rotulo: string }[] = [
   { id: "nome", rotulo: "Nome" },
 ];
 
-export function Contatos() {
+export function Contatos({ contatos }: { contatos: Contato[] }) {
   const [busca, setBusca] = useState("");
   const [ordem, setOrdem] = useState<Ordem>("recente");
 
@@ -28,7 +28,7 @@ export function Contatos() {
     const termo = busca.trim().toLowerCase();
     const digitos = termo.replace(/\D/g, "");
 
-    return CONTATOS.filter((c) => {
+    return contatos.filter((c) => {
       if (!termo) return true;
       return (
         c.nome.toLowerCase().includes(termo) ||
@@ -40,7 +40,7 @@ export function Contatos() {
       // "recente" já é a ordem em que os dados chegam
       return 0;
     });
-  }, [busca, ordem]);
+  }, [contatos, busca, ordem]);
 
   return (
     <div id="painel-contatos" role="tabpanel">

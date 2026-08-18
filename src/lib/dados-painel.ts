@@ -286,3 +286,31 @@ export const CONFIGURACAO: Configuracao = {
     "Quando a pessoa pedir para falar com um atendente, reclamar de cobrança ou repetir a mesma dúvida três vezes.",
   responderForaDoHorario: true,
 };
+
+/**
+ * O painel inteiro, do jeito que a tela consome.
+ *
+ * Mora aqui e não no módulo de servidor de propósito: os componentes de
+ * cliente precisam deste tipo, e o módulo de servidor é marcado com
+ * `server-only` — importar de lá quebraria o build, que é exatamente o
+ * que aquela marcação existe para fazer.
+ */
+export type DadosPainel = {
+  conversas: Conversa[];
+  numeros: Numeros;
+  contatos: Contato[];
+  configuracao: Configuracao;
+  /** De onde veio o dado: a tela avisa quando está em exemplo. */
+  origem: "n8n" | "exemplo";
+  /** Só preenchido quando o n8n falhou e caímos no exemplo. */
+  aviso?: string;
+};
+
+/** O painel de exemplo, para quando o n8n não estiver configurado. */
+export const PAINEL_EXEMPLO: DadosPainel = {
+  conversas: CONVERSAS,
+  numeros: NUMEROS,
+  contatos: CONTATOS,
+  configuracao: CONFIGURACAO,
+  origem: "exemplo",
+};
