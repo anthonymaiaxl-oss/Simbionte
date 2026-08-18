@@ -2234,3 +2234,29 @@ html.lenis body {
   .chat__gravando-ponto,
   .origem__ponto { animation: none; }
 }
+
+/* -- Balao continuo: fio + caixa --
+   Com mensagens na tela, o fio e a caixa viram uma superficie so. Sem
+   isto o corte do corpo do robo encostava no vazio e ficava boiando: o
+   fio era transparente, entao a linha do recorte aparecia inteira. */
+.chat--com-fio .chat__fio {
+  border: 1px solid var(--color-borda);
+  border-bottom: 0;
+  border-radius: 26px 26px 0 0;
+  background: color-mix(in srgb, var(--color-superficie) 88%, transparent);
+  backdrop-filter: blur(14px);
+  margin-bottom: 0;
+  padding: 1rem 1rem 0.9rem;
+}
+
+/* Cantos de cima retos: e onde ele encosta no fio. */
+.chat--com-fio .chat__caixa {
+  border-radius: 0 0 26px 26px;
+  border-top-color: transparent;
+}
+
+/* O anel de foco valeria so na metade de baixo e cortaria o balao ao
+   meio. Com o fio presente ele vira uma borda simples. */
+.chat--com-fio .chat__caixa:focus-within {
+  box-shadow: none;
+}

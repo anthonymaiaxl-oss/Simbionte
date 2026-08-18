@@ -109,7 +109,7 @@ export function ChatSimbionte({ dados }: { dados?: DadosPainel }) {
   const caixa = useRef<HTMLDivElement>(null);
   const campo = useRef<HTMLInputElement>(null);
   const arquivo = useRef<HTMLInputElement>(null);
-  const fim = useRef<HTMLDivElement>(null);
+  const fio = useRef<HTMLDivElement>(null);
   const gravador = useRef<MediaRecorder | null>(null);
   const pedacos = useRef<Blob[]>([]);
   const proximoId = useRef(1);
@@ -140,9 +140,18 @@ export function ChatSimbionte({ dados }: { dados?: DadosPainel }) {
     return () => document.removeEventListener("mousedown", aoClicar);
   }, [texto]);
 
-  // Rola o fio ao chegar mensagem.
+  /**
+   * Rola o fio ao chegar mensagem — e SO o fio.
+   *
+   * Com scrollIntoView a rolagem subia para o ancestral rolavel mais
+   * proximo, que enquanto o fio e curto ainda e a pagina: o robo subia
+   * junto e o corte do corpo dele ficava boiando no meio da tela. Mexer
+   * no scrollTop do proprio container nao toca na pagina.
+   */
   useEffect(() => {
-    fim.current?.scrollIntoView({ block: "end", behavior: "smooth" });
+    const f = fio.current;
+    if (!f) return;
+    f.scrollTo({ top: f.scrollHeight, behavior: "smooth" });
   }, [mensagens, pensando]);
 
   // Cronômetro da gravação.
@@ -255,14 +264,18 @@ export function ChatSimbionte({ dados }: { dados?: DadosPainel }) {
     ]);
   };
 
+  // Com o fio na tela, ele e a caixa viram um balao continuo: o corte do
+  // corpo do robo encosta na borda de cima dele em vez de flutuar.
+  const temFio = mensagens.length > 0 || pensando;
   const aberto = ativo || Boolean(texto) || anexos.length > 0;
   const podeEnviar = Boolean(texto.trim()) || anexos.length > 0;
 
   return (
-    <div className="chat">
+    <div className={`chat ${temFio ? "chat--com-fio" : ""}`}>
       {/* Fio de mensagens. Só existe depois da primeira. */}
-      {(mensagens.length > 0 || pensando) && (
+      {temFio && (
         <div
+          ref={fio}
           className="chat__fio"
           role="log"
           aria-label="Conversa com o Simbionte"
@@ -305,7 +318,6 @@ export function ChatSimbionte({ dados }: { dados?: DadosPainel }) {
             </div>
           )}
 
-          <div ref={fim} />
         </div>
       )}
 
