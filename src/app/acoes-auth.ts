@@ -67,7 +67,29 @@ export async function entrar(
       // próprio fluxo já separa a primeira. Os dois casos servem.
       const usuario = Array.isArray(bruto) ? bruto[0] : bruto;
 
-      if (usuario && estaAtivo(usuario.ativo)) {
+      /**
+       * Confere o e-mail da linha ANTES de olhar a senha.
+       *
+       * Parece redundante — o fluxo do n8n ja filtra por e-mail — mas foi
+       * exatamente esse filtro que falhou em teste: o webhook devolvia a
+       * primeira linha da tabela para qualquer e-mail pedido. Sem esta
+       * conferencia, digitar um e-mail qualquer com a senha de outra
+       * pessoa entrava.
+       *
+       * A regra e simples: quem decide se a linha serve e quem pediu, nao
+       * quem respondeu.
+       */
+      const emailDaLinha = String(usuario?.email ?? "").trim().toLowerCase();
+      const linhaConfere = emailDaLinha === email;
+
+      if (!linhaConfere && usuario) {
+        console.error(
+          `[entrar] o n8n devolveu a linha de outro e-mail. Pedido: ${email}. ` +
+            "Confira o filtro de email no no Data Table do webhook /usuario.",
+        );
+      }
+
+      if (usuario && linhaConfere && estaAtivo(usuario.ativo)) {
         liberado = await conferirSenha(senha, hashDe(usuario));
       }
     } catch (e) {
