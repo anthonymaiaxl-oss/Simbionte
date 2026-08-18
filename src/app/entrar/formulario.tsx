@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { AnimatedForm } from "@/components/ui/modern-animated-sign-in";
 import { entrar } from "../acoes-auth";
-import { ACESSO, type EstadoLogin } from "@/lib/auth";
+import { type EstadoLogin } from "@/lib/auth";
 
 const INICIAL: EstadoLogin = { erro: null };
 
@@ -36,21 +36,6 @@ export function FormularioEntrada() {
           },
         ]}
       />
-
-      {/* Enquanto não há Supabase, a credencial fica à vista: esconder
-          um acesso que já está no repositório não protege nada e só
-          faria você procurar. */}
-      <div className="mx-auto mt-8 w-full max-w-sm rounded-[10px] border border-alerta/30 bg-alerta/5 p-4">
-        <p className="rotulo text-alerta">Acesso provisório</p>
-        <p className="mt-2 text-sm leading-relaxed text-bruma">
-          <span className="text-marfim">{ACESSO.email}</span>
-          {" · "}
-          <span className="text-marfim">{ACESSO.senha}</span>
-        </p>
-        <p className="mt-2 text-xs leading-relaxed text-bruma">
-          Some quando o Supabase entrar.
-        </p>
-      </div>
     </>
   );
 }
