@@ -4,6 +4,7 @@ import { ChatSimbionte } from "@/components/chat-simbionte";
 import { FaixaEstado } from "@/components/faixa-estado";
 import { FundoHero } from "@/components/fundo-hero";
 import { MovimentoHero } from "@/components/movimento-hero";
+import { BrilhoPonteiro } from "@/components/brilho-ponteiro";
 import { Painel } from "@/components/painel";
 import { RoboMascote } from "@/components/robo-mascote";
 import { AnimatedText } from "@/components/ui/animated-text";
@@ -23,6 +24,8 @@ export default async function Home() {
 
   return (
     <>
+      <BrilhoPonteiro />
+
       {/* z-40 fica acima do robô (z-30): se ele encostar no cabeçalho em
           alguma altura de tela, passa por trás em vez de por cima. */}
       <header className="relative z-40 mx-auto flex h-20 max-w-6xl items-center justify-between px-6">

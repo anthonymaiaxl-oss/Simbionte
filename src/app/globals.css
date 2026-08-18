@@ -136,9 +136,13 @@
 
 @theme {
   --color-breu: #040507;
-  --color-superficie: #0b0f14;
-  --color-superficie-alta: #121820;
-  --color-borda: #1a2430;
+  /* Clareadas: o painel inteiro estava pesado demais, com as conversas e
+     o chat quase sumindo no preto do fundo. Subiram ~4 pontos de
+     luminancia — o suficiente para a caixa se descolar do fundo sem
+     virar cinza. */
+  --color-superficie: #101822;
+  --color-superficie-alta: #1a2532;
+  --color-borda: #22303f;
 
   --color-marfim: #f4f7fa;
   --color-bruma: #98a6b5;
@@ -155,21 +159,21 @@
 :root {
   --background: #040507;
   --foreground: #f4f7fa;
-  --card: #0b0f14;
+  --card: #101822;
   --card-foreground: #f4f7fa;
-  --popover: #0b0f14;
+  --popover: #101822;
   --popover-foreground: #f4f7fa;
   --primary: #16a34a;
   --primary-foreground: #040507;
-  --secondary: #121820;
+  --secondary: #1a2532;
   --secondary-foreground: #f4f7fa;
-  --muted: #121820;
+  --muted: #1a2532;
   --muted-foreground: #98a6b5;
-  --accent: #121820;
+  --accent: #1a2532;
   --accent-foreground: #f4f7fa;
   --destructive: #ef4444;
-  --border: #1a2430;
-  --input: #1a2430;
+  --border: #22303f;
+  --input: #22303f;
   --ring: #4ade80;
   --radius: 0.75rem;
 }
@@ -928,18 +932,32 @@ html.lenis body {
 .chip:hover { color: var(--color-marfim); }
 
 /* O preenchimento e o elemento que viaja; aqui fica so o que nao pode
-   deslizar — cor do texto e contorno — que trocam por transicao. */
+   deslizar — cor do texto e contorno — que trocam por transicao.
+   O atraso de 90ms no texto e o mesmo truque do dock: sem ele a letra
+   escurece antes de o verde chegar embaixo, e por um instante fica
+   texto escuro em fundo escuro. */
 .chip--ativo {
-  border-color: color-mix(in srgb, var(--color-simbionte) 70%, transparent);
-  color: var(--color-marfim);
+  border-color: var(--color-simbionte);
+  color: var(--color-breu);
+  font-weight: 600;
+  transition:
+    color 160ms ease 90ms,
+    border-color 200ms ease;
 }
 
+.chip--ativo .chip__conta {
+  opacity: 0.85;
+}
+
+/* Mesma pilula verde solida do dock. Antes era so um veu de 16% de
+   verde, entao a barra de abas e a de filtros pareciam dois sistemas
+   diferentes na mesma tela. */
 .chip__fundo {
   position: absolute;
   inset: 0;
   z-index: -1;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--color-simbionte) 16%, transparent);
+  background: var(--color-simbionte);
 }
 
 .chip__conta {
@@ -1891,12 +1909,16 @@ html.lenis body {
 /* Sem pilula de fundo: com ela, a aba ampliada estourava a borda
    arredondada do container e aparecia cortada. Cada aba carrega o
    proprio contorno. */
+/* O padding e o que impede a pilula da primeira e da ultima aba de ser
+   cortada. Como `overflow-x: auto` tambem corta na vertical, a aba
+   ampliada (1.18x, crescendo para cima) precisa de folga em cima
+   tambem. Com 0.25rem nas laterais, o verde encostava na parede. */
 .dock {
   display: flex;
   align-items: center;
   gap: 0.7rem;
   max-width: 100%;
-  padding: 0.5rem 0.25rem;
+  padding: 0.85rem 1.1rem;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -2259,4 +2281,118 @@ html.lenis body {
    meio. Com o fio presente ele vira uma borda simples. */
 .chat--com-fio .chat__caixa:focus-within {
   box-shadow: none;
+}
+
+/* ===============================================================
+   BRILHO QUE SEGUE O PONTEIRO
+   O mesmo efeito do campo de senha da tela de entrada, agora em toda
+   caixa da pagina. Quem move as variaveis e o componente
+   BrilhoPonteiro; aqui e so o desenho.
+   =============================================================== */
+
+/* Sem registrar, `--brilho` e so um texto solto, e `calc(var(--brilho) *
+   0.9)` nao resolve — a opacidade ficava 0 mesmo com a variavel valendo
+   1. Registrado como numero, o calc passa a valer. */
+@property --brilho {
+  syntax: "<number>";
+  /* `true` e obrigatorio: a variavel e escrita no elemento, mas quem
+     desenha e o ::after, que precisa HERDAR o valor. Com `false` o
+     pseudo-elemento recebia o initial-value (0) e o brilho nunca acendia,
+     mesmo com a variavel valendo 1 no elemento. */
+  inherits: true;
+  initial-value: 0;
+}
+
+/* A mascara e o coracao do efeito: o gradiente pinta a caixa inteira, e
+   a mascara apaga o miolo, sobrando so 1px de borda acesa. Sem ela o
+   brilho viraria uma mancha por cima do conteudo.
+   `inset:-1px` para cobrir a borda existente em vez de ficar por dentro
+   dela. */
+.conversa::after,
+.cartao::after,
+.chat__caixa::after,
+.chat__fio::after,
+.chat__msg::after,
+.tabela__caixa::after,
+.agente::after,
+.aberta__cabeca::after,
+.responder::after,
+.dock__aba::after,
+.chip::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: 2;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: radial-gradient(
+    160px circle at var(--mx, 50%) var(--my, 50%),
+    var(--color-pulso),
+    transparent 72%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: calc(var(--brilho, 0) * 0.9);
+  transition: opacity 240ms ease;
+}
+
+/* Sem position:relative o ::after ancora no ancestral errado e o brilho
+   aparece do outro lado da tela. */
+.chat__fio,
+.chat__msg,
+.tabela__caixa,
+.agente,
+.aberta__cabeca,
+.responder {
+  position: relative;
+}
+
+/* ===============================================================
+   SUPERFICIES MAIS LEVES
+   As caixas ganharam transparencia para o ruido e o verde do fundo
+   passarem por tras. Cor solida sobre preto e o que dava a sensacao de
+   peso — a caixa virava um bloco morto colado na tela.
+   =============================================================== */
+.conversa,
+.cartao,
+.tabela__caixa {
+  background: color-mix(in srgb, var(--color-superficie) 62%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.conversa:hover,
+.tabela tbody tr:hover {
+  background: color-mix(in srgb, var(--color-superficie-alta) 72%, transparent);
+}
+
+.chat__caixa,
+.chat--com-fio .chat__fio {
+  background: color-mix(in srgb, var(--color-superficie) 66%, transparent);
+}
+
+.chat__msg--simbionte {
+  background: color-mix(in srgb, var(--color-superficie) 70%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .conversa::after,
+  .cartao::after,
+  .chat__caixa::after,
+  .chat__fio::after,
+  .chat__msg::after,
+  .tabela__caixa::after,
+  .agente::after,
+  .aberta__cabeca::after,
+  .responder::after,
+  .dock__aba::after,
+  .chip::after {
+    display: none;
+  }
 }

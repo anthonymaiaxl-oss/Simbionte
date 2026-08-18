@@ -95,7 +95,13 @@ const AnimatedText = React.forwardRef<HTMLDivElement, AnimatedTextProps>(
             /* overflow-hidden faz as letras subirem por trás de uma
                linha de corte, em vez de simplesmente aparecerem. */
             className={cn(
-              "flex overflow-hidden",
+              /* pr + margem negativa: o tracking negativo tambem se
+                 aplica DEPOIS da ultima letra, entao a borda direita do
+                 container cai por cima do glifo e o overflow-hidden come
+                 um pedaco dele — era o "e" de Simbionte aparecendo
+                 cortado. A folga devolve o espaco; a margem negativa
+                 cancela ela no layout, para o texto seguir centrado. */
+              "flex overflow-hidden pr-[0.08em] -mr-[0.08em]",
               fluxo && "fluxo-verde",
               "text-4xl font-bold",
               textClassName,
