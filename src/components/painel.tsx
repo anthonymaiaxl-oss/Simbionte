@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import { useReducedMotion } from "motion/react";
 import { alternarPausa } from "@/app/acoes-painel";
 import { Agente } from "@/components/agente";
@@ -50,6 +57,46 @@ const FILTROS: { id: EstadoConversa | "todas"; rotulo: string }[] = [
 
 export function Painel({ inicial }: { inicial: DadosPainel }) {
   const [aba, setAba] = useState<Aba>("conversas");
+
+  /**
+   * Rede de seguranca contra a pagina se reposicionar ao trocar de aba.
+   *
+   * A causa raiz esta no ScrollTrigger, e foi tratada la (ele restaurava
+   * a rolagem gravada a cada mudanca de layout). Isto aqui e o cinto:
+   * guarda onde a pessoa estava, e devolve se alguma coisa mexer.
+   *
+   * Sao tres tentativas porque quem mexe pode agir em momentos
+   * diferentes — antes da pintura, no quadro seguinte, ou depois de um
+   * calculo assincrono. Cada uma so age se a posicao realmente mudou,
+   * entao rolagem legitima da pessoa nao e atrapalhada.
+   */
+  const posicao = useRef<number | null>(null);
+
+  const trocarAba = (nova: Aba) => {
+    posicao.current = window.scrollY;
+    setAba(nova);
+  };
+
+  useLayoutEffect(() => {
+    const y = posicao.current;
+    if (y === null) return;
+
+    const devolver = () => {
+      if (Math.abs(window.scrollY - y) > 2) window.scrollTo(0, y);
+    };
+
+    devolver();
+    const quadro = requestAnimationFrame(devolver);
+    const atrasado = window.setTimeout(() => {
+      devolver();
+      posicao.current = null;
+    }, 180);
+
+    return () => {
+      cancelAnimationFrame(quadro);
+      window.clearTimeout(atrasado);
+    };
+  }, [aba]);
   const [dados, setDados] = useState(inicial);
   const [lendo, setLendo] = useState(false);
   const [falhaAoLer, setFalhaAoLer] = useState<string | null>(null);
@@ -84,7 +131,7 @@ export function Painel({ inicial }: { inicial: DadosPainel }) {
           aoAtualizar={atualizar}
         />
 
-        <DockAbas itens={ABAS} atual={aba} aoTrocar={setAba} />
+        <DockAbas itens={ABAS} atual={aba} aoTrocar={trocarAba} />
 
         {/* A key força o React a remontar ao trocar de aba, e com isso a
             animação de entrada — e a contagem dos números — roda de

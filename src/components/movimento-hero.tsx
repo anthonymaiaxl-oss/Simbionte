@@ -35,6 +35,25 @@ export function MovimentoHero() {
 
     gsap.registerPlugin(ScrollTrigger);
 
+    /**
+     * Tira o `resize` da lista de eventos que disparam refresh sozinho.
+     *
+     * O ScrollTrigger observa mudanca de layout e, ao detectar, roda
+     * `refresh()` — que RESTAURA a posicao de rolagem que ele tinha
+     * gravado. As abas do painel tem alturas bem diferentes, entao cada
+     * troca mudava a altura do documento, disparava o refresh, e a pagina
+     * pulava de volta para o valor antigo. Era o "clica na aba e a tela
+     * sobe sozinha".
+     *
+     * O parallax so depende da geometria da Hero, que nao muda quando o
+     * painel troca de aba — logo, nao ha o que recalcular nessas horas.
+     * Redimensionar a janela continua importando, e por isso o refresh
+     * volta logo abaixo, chamado a mao e so nesse caso.
+     */
+    ScrollTrigger.config({
+      autoRefreshEvents: "visibilitychange,DOMContentLoaded,load",
+    });
+
     const hero = document.querySelector<HTMLElement>(".hero");
 
     const contexto = gsap.context(() => {
@@ -69,7 +88,19 @@ export function MovimentoHero() {
       gsap.ticker.lagSmoothing(0);
     }
 
+    // Redimensionar a janela ainda precisa recalcular — so isso, e com
+    // folga para nao rodar a cada pixel enquanto a pessoa arrasta a
+    // borda.
+    let espera: number;
+    const aoRedimensionar = () => {
+      window.clearTimeout(espera);
+      espera = window.setTimeout(() => ScrollTrigger.refresh(), 200);
+    };
+    window.addEventListener("resize", aoRedimensionar);
+
     return () => {
+      window.clearTimeout(espera);
+      window.removeEventListener("resize", aoRedimensionar);
       contexto.revert();
       ScrollTrigger.getAll().forEach((st) => st.kill());
       if (aoTick) gsap.ticker.remove(aoTick);
