@@ -549,7 +549,12 @@ html.lenis body {
   transition: border-color 220ms ease, box-shadow 220ms ease;
 }
 
-.chat__caixa:focus-within {
+/* `:focus-within` acendia o contorno verde a cada clique do mouse, e
+   isso competia com o brilho que segue o ponteiro — o efeito novo quase
+   nao aparecia porque a caixa ja estava verde.
+   `:has(:focus-visible)` reage so ao teclado. Quem navega por Tab
+   continua vendo onde esta; quem usa mouse ve o brilho e mais nada. */
+.chat__caixa:has(:focus-visible) {
   border-color: color-mix(in srgb, var(--color-simbionte) 70%, transparent);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-simbionte) 14%, transparent);
 }
@@ -1001,9 +1006,9 @@ html.lenis body {
   transition: border-color 180ms ease;
 }
 
-.conversa:hover {
-  border-color: color-mix(in srgb, var(--color-simbionte) 40%, var(--color-borda));
-}
+/* Sem contorno verde no hover: quem marca a caixa sob o cursor agora e o
+   brilho que segue o ponteiro. Os dois juntos competiam, e o verde fixo
+   apagava o efeito novo. */
 
 .conversa__inicial {
   display: grid;
@@ -1510,7 +1515,6 @@ html.lenis body {
    sombra so ancora. */
 .cartao:hover {
   transform: translateY(-3px);
-  border-color: color-mix(in srgb, var(--color-simbionte) 35%, var(--color-borda));
   box-shadow: 0 12px 26px -12px rgba(0, 0, 0, 0.8);
 }
 
@@ -1950,7 +1954,6 @@ html.lenis body {
 
 .dock__aba:hover {
   color: var(--color-marfim);
-  border-color: color-mix(in srgb, var(--color-simbionte) 55%, var(--color-borda));
   background: color-mix(in srgb, var(--color-simbionte) 8%, transparent);
 }
 
@@ -2280,15 +2283,21 @@ html.lenis body {
   padding: 1rem 1rem 0.9rem;
 }
 
-/* Cantos de cima retos: e onde ele encosta no fio. */
+/* Cantos de cima retos: e onde ele encosta no fio.
+   A borda de cima fica VISIVEL e o fundo sobe um tom: com as duas partes
+   na mesma cor, o balao virava um bloco escuro so e nao dava para saber
+   onde clicar para escrever. Agora a area de escrita se apresenta como
+   uma faixa propria, mais clara, separada por uma linha. */
 .chat--com-fio .chat__caixa {
   border-radius: 0 0 26px 26px;
-  border-top-color: transparent;
+  border-top: 1px solid var(--color-borda);
+  background: color-mix(in srgb, var(--color-superficie-alta) 78%, transparent);
 }
+
 
 /* O anel de foco valeria so na metade de baixo e cortaria o balao ao
    meio. Com o fio presente ele vira uma borda simples. */
-.chat--com-fio .chat__caixa:focus-within {
+.chat--com-fio .chat__caixa:has(:focus-visible) {
   box-shadow: none;
 }
 
@@ -2319,8 +2328,7 @@ html.lenis body {
    dela. */
 .conversa::after,
 .cartao::after,
-.chat__caixa::after,
-.chat__fio::after,
+.chat__balao::after,
 .chat__msg::after,
 .tabela__caixa::after,
 .agente::after,
@@ -2354,13 +2362,20 @@ html.lenis body {
 
 /* Sem position:relative o ::after ancora no ancestral errado e o brilho
    aparece do outro lado da tela. */
-.chat__fio,
+.chat__balao,
 .chat__msg,
 .tabela__caixa,
 .agente,
 .aberta__cabeca,
 .responder {
   position: relative;
+}
+
+/* O balao nao desenha nada sozinho: e so a moldura que carrega o anel de
+   brilho em volta do conjunto fio + caixa. O raio acompanha o da caixa
+   para o anel correr rente ao canto arredondado. */
+.chat__balao {
+  border-radius: 26px;
 }
 
 /* ===============================================================
@@ -2393,8 +2408,7 @@ html.lenis body {
 @media (prefers-reduced-motion: reduce) {
   .conversa::after,
   .cartao::after,
-  .chat__caixa::after,
-  .chat__fio::after,
+  .chat__balao::after,
   .chat__msg::after,
   .tabela__caixa::after,
   .agente::after,

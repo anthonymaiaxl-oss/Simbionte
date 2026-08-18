@@ -272,6 +272,11 @@ export function ChatSimbionte({ dados }: { dados?: DadosPainel }) {
 
   return (
     <div className={`chat ${temFio ? "chat--com-fio" : ""}`}>
+      {/* Fio e caixa dentro do mesmo balão: assim o contorno que segue o
+          ponteiro corre em volta do conjunto. Com um anel em cada um, o
+          brilho parava na costura entre os dois e desenhava uma linha no
+          meio. */}
+      <div className="chat__balao">
       {/* Fio de mensagens. Só existe depois da primeira. */}
       {temFio && (
         <div
@@ -482,7 +487,10 @@ export function ChatSimbionte({ dados }: { dados?: DadosPainel }) {
                             },
                           }}
                         >
-                          {letra === " " ? " " : letra}
+                          {/* Espaco rigido: um inline-block com um espaco comum dentro
+                              colapsa para largura zero, e a frase saia toda
+                              grudada. */}
+                          {letra === " " ? " " : letra}
                         </motion.span>
                       ))}
                     </motion.span>
@@ -554,6 +562,7 @@ export function ChatSimbionte({ dados }: { dados?: DadosPainel }) {
           </button>
         </motion.div>
       </motion.div>
+      </div>
 
       {/* Os atalhos somem depois da primeira pergunta: eles ensinam o que
           dá para perguntar, e quem já perguntou não precisa mais da aula. */}

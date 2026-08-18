@@ -27,8 +27,7 @@ import { useEffect } from "react";
 const CAIXAS = [
   ".conversa",
   ".cartao",
-  ".chat__caixa",
-  ".chat__fio",
+  ".chat__balao",
   ".chat__msg",
   ".tabela__caixa",
   ".agente",
