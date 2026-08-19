@@ -2622,156 +2622,119 @@ html.lenis body {
 
 /* ===============================================================
    PASSAGEM ENTRE A HERO E O PAINEL
-   Com a divisoria de cor resolvida em `.painel::before`, esta faixa
-   ficou livre para dizer alguma coisa: um letreiro com o que o agente
-   faz, e dois selos parados por cima.
+   Uma frase por vez atravessando. A primeira versao era um letreiro
+   continuo com as tres emendadas, e nao dava para ler onde uma acabava.
    =============================================================== */
 .passagem {
   position: relative;
-  padding: 2.5rem 0 3rem;
-  /* Margem negativa so em cima: a faixa encosta na Hero e respira antes
-     do painel, onde comeca o trabalho de verdade. */
   margin-top: -2rem;
   z-index: 1;
 }
 
-/* -- Letreiro -- */
 .letreiro {
+  position: relative;
+  /* Altura fixa: as frases sao absolutas, entao sem isto a faixa
+     colapsaria e o painel subiria por cima. */
+  height: clamp(3.4rem, 7vw, 5.2rem);
   /* `clip` e nao `hidden`: nao pode virar container de rolagem, senao o
      Lenis e o ScrollTrigger passam a brigar com ele. */
   overflow-x: clip;
-  /* Apaga nas duas pontas em vez de cortar seco. Sem isto a frase nasce
-     e morre numa borda reta, que denuncia o truque. */
+  /* Apaga nas pontas em vez de cortar seco. Sem isto a frase nasce e
+     morre numa borda reta, e o corte fica evidente. */
   -webkit-mask-image: linear-gradient(
-    to right, transparent, #000 12%, #000 88%, transparent);
+    to right, transparent, #000 10%, #000 90%, transparent);
   mask-image: linear-gradient(
-    to right, transparent, #000 12%, #000 88%, transparent);
+    to right, transparent, #000 10%, #000 90%, transparent);
 }
 
-.letreiro__trilho {
-  display: flex;
-  width: max-content;
-  will-change: transform;
-  /* 46s: no ritmo de leitura, nao de anuncio. Rapido demais vira letreiro
-     de farmacia. */
-  animation: correr-letreiro 46s linear infinite;
-}
-
-/* -50% e a largura de UMA volta, porque existem duas iguais no trilho.
-   Quando a primeira sai, a segunda ja esta no lugar dela. */
-@keyframes correr-letreiro {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
-
-.letreiro__volta {
-  display: flex;
-  align-items: center;
-  flex: none;
-}
-
-.letreiro__item {
+.letreiro__frase {
+  position: absolute;
+  top: 50%;
+  left: 0;
   display: inline-flex;
   align-items: center;
-  gap: 1.6rem;
-  padding-right: 1.6rem;
-  font-family: var(--fonte-gabarito), ui-sans-serif, system-ui, sans-serif;
-  font-size: clamp(1.5rem, 4.2vw, 3.1rem);
+  gap: 0.7em;
+  /* Archivo em caixa alta: grotesca de contorno RETO. DM Sans e Gabarito
+     sao geometricas de curva aberta, e em corpo grande ficavam macias e
+     sem peso — era o "muito redonda" da critica.
+     O espacamento volta a ser levemente positivo: caixa alta apertada
+     embola as hastes e para de ler a distancia. */
+  font-family: var(--fonte-archivo), ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.6rem, 4.4vw, 3.2rem);
   font-weight: 800;
-  letter-spacing: -0.025em;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
   white-space: nowrap;
-  /* Contorno em vez de preenchimento: o letreiro e pano de fundo, nao
-     manchete. Cheio, competiria com o nome da marca logo acima. */
+  cursor: default;
+  will-change: transform;
+
+  /* A MESMA onda verde do nome Simbionte no topo — o gradiente de
+     `.fluxo-verde`, recortado pelo texto. Antes eu tinha usado um verde
+     chapado no hover, que era outro tom e outro comportamento; a onda ja
+     e o padrao da casa e nao precisava de invencao.
+
+     Duas animacoes no mesmo elemento: uma leva a frase pela tela, a outra
+     move a onda dentro dela. Os dois tempos sao independentes de
+     proposito — se fossem iguais, a onda pararia sempre na mesma letra. */
+  background-image: linear-gradient(
+    100deg,
+    var(--color-marfim) 0%,
+    var(--color-marfim) 36%,
+    var(--color-simbionte) 43%,
+    var(--color-pulso) 48%,
+    #c9fb7e 51%,
+    var(--color-pulso) 54%,
+    var(--color-simbionte) 59%,
+    var(--color-marfim) 66%,
+    var(--color-marfim) 100%
+  );
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
   color: transparent;
-  -webkit-text-stroke: 1px color-mix(in srgb, var(--color-simbionte) 42%, transparent);
+
+  animation-name: atravessar-frase, fluir;
+  animation-timing-function: linear, linear;
+  animation-iteration-count: infinite, infinite;
 }
 
 .letreiro__zap {
-  width: 0.62em;
-  height: 0.62em;
+  width: 0.6em;
+  height: 0.6em;
   flex: none;
-  color: color-mix(in srgb, var(--color-simbionte) 52%, transparent);
+  /* O simbolo nao pode receber a onda: `background-clip: text` so pinta
+     letra. Fica no verde da marca, que e onde a onda passa mais tempo. */
+  color: var(--color-simbionte);
 }
 
-/* -- Selos -- */
-.passagem__selos {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.6rem;
-  /* Sobem para dentro do letreiro: os dois ocupam a mesma faixa, e e essa
-     sobreposicao que faz o selo parecer pousado ali. */
-  margin-top: -1.9rem;
-}
-
-.selo {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid color-mix(in srgb, var(--color-simbionte) 45%, var(--color-borda));
-  border-radius: 999px;
-  padding: 0.42rem 0.95rem;
-  background: color-mix(in srgb, var(--color-superficie) 88%, transparent);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 10px 26px -14px rgba(0, 0, 0, 0.9);
-}
-
-/* O brilho: um losango largo girando devagar atras do texto, recortado
-   pela borda arredondada do selo. Ideia tirada do selo de premiacao, mas
-   refeito na paleta da marca — sete tons de arco-iris aqui virariam
-   adesivo colado na pagina. */
-.selo__brilho {
-  position: absolute;
-  z-index: -1;
-  top: 50%;
-  left: 50%;
-  width: 240%;
-  height: 240%;
-  margin: -120% 0 0 -120%;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    color-mix(in srgb, var(--color-simbionte) 30%, transparent) 40deg,
-    color-mix(in srgb, var(--color-pulso) 55%, transparent) 70deg,
-    color-mix(in srgb, var(--color-simbionte) 30%, transparent) 100deg,
-    transparent 150deg,
-    transparent 360deg
-  );
-  filter: blur(6px);
-  opacity: 0.75;
-  will-change: transform;
-  animation: girar-selo 7s linear infinite;
-}
-
-@keyframes girar-selo {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-.selo__texto {
-  font-family: var(--fonte-space-mono), ui-monospace, monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--color-marfim);
-  white-space: nowrap;
+/* Entra pela direita e sai pela esquerda. O `-100%` no fim e a largura da
+   propria frase, entao ela sai inteira antes de reaparecer.
+   Cada frase ocupa um terco do ciclo; nos dois tercos restantes ela fica
+   parada fora da tela, esperando a vez. */
+@keyframes atravessar-frase {
+  0%      { transform: translate(100vw, -50%); }
+  33.333% { transform: translate(-100%, -50%); }
+  100%    { transform: translate(-100%, -50%); }
 }
 
 @media (max-width: 640px) {
-  .passagem { padding: 1.6rem 0 2rem; margin-top: -1.2rem; }
-  .passagem__selos { margin-top: -1.2rem; }
-  .selo__texto { font-size: 0.62rem; }
+  .passagem { margin-top: -1.2rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* O letreiro para com a frase legivel na tela, e o brilho congela numa
-     posicao qualquer. Nada some. */
-  .letreiro__trilho { animation: none; transform: translateX(-6%); }
-  .selo__brilho { animation: none; }
+  /* Sem travessia: a primeira frase fica legivel no centro e as outras
+     ficam fora da tela. */
+  .letreiro__frase {
+    animation: none;
+    transform: translate(100vw, -50%);
+    /* Para a onda no meio da frase em vez de deixa-la sem cor nenhuma. */
+    background-position: 50% 50%;
+  }
+  .letreiro__frase:first-child {
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
 }
+
 
 

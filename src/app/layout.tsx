@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
-import { DM_Sans, Fira_Code, Gabarito, Space_Mono } from "next/font/google";
+import {
+  Archivo,
+  DM_Sans,
+  Fira_Code,
+  Gabarito,
+  Space_Mono,
+} from "next/font/google";
 import "./globals.css";
 
 /**
@@ -11,6 +17,23 @@ import "./globals.css";
  */
 const gabarito = Gabarito({
   variable: "--fonte-gabarito",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+/**
+ * Archivo: grotesca de desenho quadrado, para o letreiro da passagem.
+ *
+ * DM Sans e Gabarito sao geometricas de curva aberta — em caixa alta e
+ * corpo grande elas ficam macias e sem peso. Archivo tem o contorno
+ * reto que da o impacto ali.
+ *
+ * Sem `weight`, pelo mesmo motivo das outras: e variavel, e pedir peso
+ * fixo faz o Next gerar um arquivo por peso e por conjunto de
+ * caracteres — foi o que quebrou o build da Vercel uma vez.
+ */
+const archivo = Archivo({
+  variable: "--fonte-archivo",
   subsets: ["latin"],
   display: "swap",
 });
@@ -64,7 +87,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${gabarito.variable} ${dmSans.variable} ${firaCode.variable} ${spaceMono.variable} antialiased`}
+        className={`${archivo.variable} ${gabarito.variable} ${dmSans.variable} ${firaCode.variable} ${spaceMono.variable} antialiased`}
       >
         {children}
       </body>
