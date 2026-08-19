@@ -2,7 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Mic, Paperclip, Search, Send, Sparkles, Square, X } from "lucide-react";
+import {
+  Maximize2,
+  Mic,
+  Minimize2,
+  Paperclip,
+  Search,
+  Send,
+  Sparkles,
+  Square,
+  X,
+} from "lucide-react";
 import { perguntarAoSimbionte } from "@/app/acoes-painel";
 import type { DadosPainel } from "@/lib/dados-painel";
 
@@ -126,6 +136,15 @@ export function ChatSimbionte({ dados }: { dados?: DadosPainel }) {
   const [mensagens, setMensagens] = useState<MensagemChat[]>([]);
   const [pensando, setPensando] = useState(false);
 
+  /**
+   * Fio ampliado.
+   *
+   * Fechado ele para na altura de umas quatro mensagens e rola por
+   * dentro. Sem esse teto, uma conversa longa empurra o painel inteiro
+   * para baixo e o robo sai da tela.
+   */
+  const [ampliado, setAmpliado] = useState(false);
+
   // Gravação
   const [gravando, setGravando] = useState(false);
   const [segundos, setSegundos] = useState(0);
@@ -157,9 +176,14 @@ export function ChatSimbionte({ dados }: { dados?: DadosPainel }) {
   // Clique fora fecha, desde que não haja rascunho para perder.
   useEffect(() => {
     const aoClicar = (e: MouseEvent) => {
-      if (caixa.current && !caixa.current.contains(e.target as Node)) {
-        if (!texto) setAtivo(false);
-      }
+      const dentro =
+        caixa.current?.contains(e.target as Node) ||
+        fio.current?.contains(e.target as Node);
+      if (dentro) return;
+      if (!texto) setAtivo(false);
+      // Clicar fora tambem devolve o fio ao tamanho pequeno: ampliado e um
+      // estado de leitura, nao o estado normal da pagina.
+      setAmpliado(false);
     };
     document.addEventListener("mousedown", aoClicar);
     return () => document.removeEventListener("mousedown", aoClicar);
@@ -316,6 +340,20 @@ export function ChatSimbionte({ dados }: { dados?: DadosPainel }) {
       <div className="chat__balao">
       {/* Fio de mensagens. Só existe depois da primeira. */}
       {temFio && (
+        <div className={`chat__fio-area ${ampliado ? "chat__fio-area--alto" : ""}`}>
+          <button
+            type="button"
+            onClick={() => setAmpliado((v) => !v)}
+            aria-pressed={ampliado}
+            className="chat__ampliar"
+            title={ampliado ? "Reduzir a conversa" : "Ampliar a conversa"}
+          >
+            {ampliado ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+            <span className="sr-only">
+              {ampliado ? "Reduzir a conversa" : "Ampliar a conversa"}
+            </span>
+          </button>
+
         <div
           ref={fio}
           className="chat__fio"
@@ -362,7 +400,7 @@ export function ChatSimbionte({ dados }: { dados?: DadosPainel }) {
               </span>
             </div>
           )}
-
+          </div>
         </div>
       )}
 

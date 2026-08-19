@@ -2,7 +2,6 @@ import { sair } from "@/app/acoes-auth";
 import { buscarPainel } from "@/lib/painel-servidor";
 import { lerSessao } from "@/lib/sessao";
 import { ContaUsuario } from "@/components/conta-usuario";
-import { DobraLente } from "@/components/dobra-lente";
 import { ChatSimbionte } from "@/components/chat-simbionte";
 import { FundoHero } from "@/components/fundo-hero";
 import { MovimentoHero } from "@/components/movimento-hero";
@@ -58,7 +57,7 @@ export default async function Home() {
         {/* ── Hero ─────────────────────────────────────────────────
             O nome, o mascote e a conversa. O robô é cortado na linha do
             chat de propósito: ele emerge de dentro dela. */}
-        <section className="hero mx-auto flex max-w-4xl flex-col items-center px-6 pb-14 pt-6 text-center sm:pt-10">
+        <section className="hero mx-auto flex max-w-4xl flex-col items-center px-6 pb-6 pt-6 text-center sm:pt-10">
           <MovimentoHero />
 
           {/* Camadas do parallax: cada uma sobe numa taxa diferente. */}
@@ -95,12 +94,15 @@ export default async function Home() {
           </div>
         </section>
 
-        <DobraLente />
         <Painel inicial={dados} />
       </main>
 
-      <footer className="mx-auto max-w-6xl px-6 py-10">
-        <p className="text-sm text-bruma">Simbionte — painel do agente.</p>
+      <footer className="rodape">
+        {/* O ano sai do relogio, nao escrito a mao: rodape com ano velho e
+            o tipo de detalhe que faz um produto parecer abandonado. */}
+        <p className="rodape__linha">
+          © {new Date().getFullYear()} Simbionte. Todos os direitos reservados.
+        </p>
       </footer>
     </>
   );

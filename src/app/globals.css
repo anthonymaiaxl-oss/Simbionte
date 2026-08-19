@@ -621,9 +621,17 @@ html.lenis body {
   z-index: 1;
 }
 
+/* A dica entra com `blur`, e o borrao da PRIMEIRA letra vaza para fora do
+   texto — batia no `overflow: hidden` e ela aparecia cortada ao surgir.
+   A caixa comeca 10px antes e devolve os 10px em padding: o texto fica no
+   mesmo lugar, mas agora ha folga para o desfoque acontecer. */
 .chat__dica {
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: -10px;
+  padding-left: 10px;
   display: flex;
   align-items: center;
   pointer-events: none;
@@ -836,9 +844,11 @@ html.lenis body {
 /* ===============================================================
    PAINEL DE OPERACAO
    =============================================================== */
+/* O respiro de cima encolheu junto com o da Hero: com o letreiro fora,
+   96px separavam o chat do painel e as duas secoes pareciam desligadas. */
 .painel {
   position: relative;
-  padding: 2.5rem 1.5rem 4rem;
+  padding: 1.75rem 1.5rem 4rem;
 }
 
 /* Mesmo verde da Hero (#16a34a), mais fraco e ancorado no topo: o painel
@@ -2083,7 +2093,9 @@ html.lenis body {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  max-height: 22rem;
+  /* Sem teto proprio: quem manda na altura e `.chat__fio-area`, para o
+     botao de ampliar ter um lugar so para mexer. */
+  max-height: 100%;
   overflow-y: auto;
   padding: 0.9rem 0.25rem;
   margin-bottom: 0.6rem;
@@ -2621,122 +2633,87 @@ html.lenis body {
 }
 
 /* ===============================================================
-   PASSAGEM ENTRE A HERO E O PAINEL
-   Uma frase por vez atravessando. A primeira versao era um letreiro
-   continuo com as tres emendadas, e nao dava para ler onde uma acabava.
+   RODAPE
+   Uma linha so. O painel acima ja e denso; o rodape existe para fechar a
+   pagina, nao para carregar mais nada.
    =============================================================== */
-.passagem {
-  position: relative;
-  margin-top: -2rem;
-  z-index: 1;
+.rodape {
+  max-width: 72rem;
+  margin-inline: auto;
+  padding: 3.5rem 1.5rem 2.5rem;
+  /* A linha de cima separa sem pesar: com borda cheia o rodape competia
+     com os cartoes do painel. */
+  border-top: 1px solid color-mix(in srgb, var(--color-borda) 55%, transparent);
 }
 
-.letreiro {
-  position: relative;
-  /* Altura fixa: as frases sao absolutas, entao sem isto a faixa
-     colapsaria e o painel subiria por cima. */
-  height: clamp(2.8rem, 5.8vw, 4.2rem);
-  /* `clip` e nao `hidden`: nao pode virar container de rolagem, senao o
-     Lenis e o ScrollTrigger passam a brigar com ele. */
-  overflow-x: clip;
-  /* Apaga nas pontas em vez de cortar seco. Sem isto a frase nasce e
-     morre numa borda reta, e o corte fica evidente. */
-  -webkit-mask-image: linear-gradient(
-    to right, transparent, #000 10%, #000 90%, transparent);
-  mask-image: linear-gradient(
-    to right, transparent, #000 10%, #000 90%, transparent);
+.rodape__linha {
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--color-bruma);
+  opacity: 0.7;
 }
 
-.letreiro__frase {
+
+
+
+
+
+/* ===============================================================
+   AMPLIAR A CONVERSA
+   Fechado, o fio para na altura de umas quatro mensagens e rola por
+   dentro. Sem esse teto, conversa longa empurra o painel inteiro para
+   baixo e tira o robo da tela.
+   =============================================================== */
+.chat__fio-area {
+  position: relative;
+  /* ~4 mensagens curtas. A transicao e em max-height porque a altura real
+     depende do conteudo — height fixo cortaria conversa curta. */
+  max-height: 13.5rem;
+  transition: max-height 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.chat__fio-area--alto {
+  /* Teto alto, mas ainda um teto: a pagina nao pode crescer sem fim. */
+  max-height: min(62vh, 40rem);
+}
+
+.chat__fio-area .chat__fio {
+  height: 100%;
+}
+
+/* O botao mora no canto de cima, dentro do balao. z-index acima do fio
+   para nao ser coberto pelas mensagens que passam rolando. */
+.chat__ampliar {
   position: absolute;
-  top: 50%;
-  left: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.7em;
-  /* Archivo em caixa alta: grotesca de contorno RETO. DM Sans e Gabarito
-     sao geometricas de curva aberta, e em corpo grande ficavam macias e
-     sem peso — era o "muito redonda" da critica.
-     O espacamento volta a ser levemente positivo: caixa alta apertada
-     embola as hastes e para de ler a distancia. */
-  font-family: var(--fonte-archivo), ui-sans-serif, system-ui, sans-serif;
-  /* ~18% menor que a versao anterior (era 1.6/4.4vw/3.2): estava
-     ocupando espaco demais para o papel de pano de fundo. */
-  font-size: clamp(1.3rem, 3.6vw, 2.6rem);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  cursor: default;
-  will-change: transform;
-
-  /* A MESMA onda verde do nome Simbionte no topo — o gradiente de
-     `.fluxo-verde`, recortado pelo texto. Antes eu tinha usado um verde
-     chapado no hover, que era outro tom e outro comportamento; a onda ja
-     e o padrao da casa e nao precisava de invencao.
-
-     Duas animacoes no mesmo elemento: uma leva a frase pela tela, a outra
-     move a onda dentro dela. Os dois tempos sao independentes de
-     proposito — se fossem iguais, a onda pararia sempre na mesma letra. */
-  background-image: linear-gradient(
-    100deg,
-    var(--color-marfim) 0%,
-    var(--color-marfim) 36%,
-    var(--color-simbionte) 43%,
-    var(--color-pulso) 48%,
-    #c9fb7e 51%,
-    var(--color-pulso) 54%,
-    var(--color-simbionte) 59%,
-    var(--color-marfim) 66%,
-    var(--color-marfim) 100%
-  );
-  background-size: 300% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-
-  animation-name: atravessar-frase, fluir;
-  animation-timing-function: linear, linear;
-  animation-iteration-count: infinite, infinite;
+  top: 0.55rem;
+  right: 0.6rem;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--color-borda);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--color-superficie-alta) 88%, transparent);
+  backdrop-filter: blur(8px);
+  color: var(--color-bruma);
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 180ms ease, color 180ms ease, border-color 180ms ease;
 }
 
-.letreiro__zap {
-  width: 0.6em;
-  height: 0.6em;
-  flex: none;
-  /* O simbolo nao pode receber a onda: `background-clip: text` so pinta
-     letra. Fica no verde da marca, que e onde a onda passa mais tempo. */
-  color: var(--color-simbionte);
+/* Discreto ate alguem chegar perto: e um controle de leitura, nao uma
+   acao principal. */
+.chat--com-fio:hover .chat__ampliar,
+.chat__ampliar:focus-visible {
+  opacity: 1;
 }
 
-/* Entra pela direita e sai pela esquerda. O `-100%` no fim e a largura da
-   propria frase, entao ela sai inteira antes de reaparecer.
-   Cada frase ocupa um terco do ciclo; nos dois tercos restantes ela fica
-   parada fora da tela, esperando a vez. */
-@keyframes atravessar-frase {
-  0%      { transform: translate(100vw, -50%); }
-  33.333% { transform: translate(-100%, -50%); }
-  100%    { transform: translate(-100%, -50%); }
-}
-
-@media (max-width: 640px) {
-  .passagem { margin-top: -1.2rem; }
+.chat__ampliar:hover {
+  color: var(--color-marfim);
+  border-color: color-mix(in srgb, var(--color-simbionte) 60%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Sem travessia: a primeira frase fica legivel no centro e as outras
-     ficam fora da tela. */
-  .letreiro__frase {
-    animation: none;
-    transform: translate(100vw, -50%);
-    /* Para a onda no meio da frase em vez de deixa-la sem cor nenhuma. */
-    background-position: 50% 50%;
-  }
-  .letreiro__frase:first-child {
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
+  .chat__fio-area { transition: none; }
 }
-
-
-
