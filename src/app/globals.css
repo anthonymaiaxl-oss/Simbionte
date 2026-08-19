@@ -2622,55 +2622,156 @@ html.lenis body {
 
 /* ===============================================================
    PASSAGEM ENTRE A HERO E O PAINEL
-   O problema era COR, nao desenho. O verde do painel comecava de uma vez
-   na borda de cima, e o encontro com o preto da Hero virava uma linha.
-   Tentei disfarcar com um arco de luz e so chamei atencao para o defeito.
-   A correcao esta em `.painel::before`, mais abaixo: a mudanca de cor
-   passou a acontecer ao longo de ~360px em vez de num ponto.
+   Com a divisoria de cor resolvida em `.painel::before`, esta faixa
+   ficou livre para dizer alguma coisa: um letreiro com o que o agente
+   faz, e dois selos parados por cima.
    =============================================================== */
 .passagem {
   position: relative;
-  height: 150px;
-  /* Margens negativas fazem a faixa INVADIR as duas secoes: assim as
-     marcas atravessam a fronteira em vez de respeitar uma calha. */
-  margin-top: -3.5rem;
-  margin-bottom: -3rem;
-  pointer-events: none;
-  /* `clip` e nao `hidden`: nao pode virar container de rolagem, senao o
-     Lenis e o ScrollTrigger passam a brigar com ele. */
-  overflow-x: clip;
+  padding: 2.5rem 0 3rem;
+  /* Margem negativa so em cima: a faixa encosta na Hero e respira antes
+     do painel, onde comeca o trabalho de verdade. */
+  margin-top: -2rem;
   z-index: 1;
 }
 
-/* As marcas do WhatsApp atravessando. Bem apagadas: e o assunto da
-   pagina passando pelo fundo, nao um elemento para ser lido. */
-.passagem__zap {
-  position: absolute;
-  left: 0;
-  color: var(--color-simbionte);
-  will-change: transform;
-  animation-name: atravessar;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
+/* -- Letreiro -- */
+.letreiro {
+  /* `clip` e nao `hidden`: nao pode virar container de rolagem, senao o
+     Lenis e o ScrollTrigger passam a brigar com ele. */
+  overflow-x: clip;
+  /* Apaga nas duas pontas em vez de cortar seco. Sem isto a frase nasce
+     e morre numa borda reta, que denuncia o truque. */
+  -webkit-mask-image: linear-gradient(
+    to right, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(
+    to right, transparent, #000 12%, #000 88%, transparent);
 }
 
-/* Comeca e termina fora da tela, entao nenhuma marca aparece ou some no
-   meio do caminho. O giro leve tira a sensacao de esteira. */
-@keyframes atravessar {
-  from { transform: translateX(-8vw) rotate(-8deg); }
-  to   { transform: translateX(108vw) rotate(8deg); }
+.letreiro__trilho {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  /* 46s: no ritmo de leitura, nao de anuncio. Rapido demais vira letreiro
+     de farmacia. */
+  animation: correr-letreiro 46s linear infinite;
+}
+
+/* -50% e a largura de UMA volta, porque existem duas iguais no trilho.
+   Quando a primeira sai, a segunda ja esta no lugar dela. */
+@keyframes correr-letreiro {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.letreiro__volta {
+  display: flex;
+  align-items: center;
+  flex: none;
+}
+
+.letreiro__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.6rem;
+  padding-right: 1.6rem;
+  font-family: var(--fonte-gabarito), ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.5rem, 4.2vw, 3.1rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  white-space: nowrap;
+  /* Contorno em vez de preenchimento: o letreiro e pano de fundo, nao
+     manchete. Cheio, competiria com o nome da marca logo acima. */
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--color-simbionte) 42%, transparent);
+}
+
+.letreiro__zap {
+  width: 0.62em;
+  height: 0.62em;
+  flex: none;
+  color: color-mix(in srgb, var(--color-simbionte) 52%, transparent);
+}
+
+/* -- Selos -- */
+.passagem__selos {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  /* Sobem para dentro do letreiro: os dois ocupam a mesma faixa, e e essa
+     sobreposicao que faz o selo parecer pousado ali. */
+  margin-top: -1.9rem;
+}
+
+.selo {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--color-simbionte) 45%, var(--color-borda));
+  border-radius: 999px;
+  padding: 0.42rem 0.95rem;
+  background: color-mix(in srgb, var(--color-superficie) 88%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 26px -14px rgba(0, 0, 0, 0.9);
+}
+
+/* O brilho: um losango largo girando devagar atras do texto, recortado
+   pela borda arredondada do selo. Ideia tirada do selo de premiacao, mas
+   refeito na paleta da marca — sete tons de arco-iris aqui virariam
+   adesivo colado na pagina. */
+.selo__brilho {
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  left: 50%;
+  width: 240%;
+  height: 240%;
+  margin: -120% 0 0 -120%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    color-mix(in srgb, var(--color-simbionte) 30%, transparent) 40deg,
+    color-mix(in srgb, var(--color-pulso) 55%, transparent) 70deg,
+    color-mix(in srgb, var(--color-simbionte) 30%, transparent) 100deg,
+    transparent 150deg,
+    transparent 360deg
+  );
+  filter: blur(6px);
+  opacity: 0.75;
+  will-change: transform;
+  animation: girar-selo 7s linear infinite;
+}
+
+@keyframes girar-selo {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.selo__texto {
+  font-family: var(--fonte-space-mono), ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--color-marfim);
+  white-space: nowrap;
 }
 
 @media (max-width: 640px) {
-  .passagem { height: 110px; margin-top: -2.5rem; }
+  .passagem { padding: 1.6rem 0 2rem; margin-top: -1.2rem; }
+  .passagem__selos { margin-top: -1.2rem; }
+  .selo__texto { font-size: 0.62rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Param onde estao, espalhadas. A faixa continua povoada, sem
-     movimento. */
-  .passagem__zap {
-    animation: none;
-    transform: translateX(38vw);
-  }
+  /* O letreiro para com a frase legivel na tela, e o brilho congela numa
+     posicao qualquer. Nada some. */
+  .letreiro__trilho { animation: none; transform: translateX(-6%); }
+  .selo__brilho { animation: none; }
 }
+
 
