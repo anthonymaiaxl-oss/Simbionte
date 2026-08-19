@@ -47,3 +47,6 @@ next-env.d.ts
 
 # pasta temporaria do script de compressao
 .quadros-temp/
+
+# config do MCP: carrega a chave da API do n8n, nao pode ir para o repositorio
+.mcp.json
