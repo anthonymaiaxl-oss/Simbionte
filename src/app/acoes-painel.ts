@@ -93,7 +93,9 @@ export async function perguntarAoSimbionte(
 
   try {
     const r = await chamarN8N<{ resposta?: string; output?: string }>(
-      "simbionte/perguntar",
+      // `painel/perguntar`: os caminhos do painel ficam todos sob `painel/`
+      // para nao disputar endereco com o fluxo do WhatsApp.
+      "painel/perguntar",
       { metodo: "POST", corpo: { pergunta: limpa, mensagem: limpa } },
     );
     // `output` é o nome que o nó de Agente do n8n usa por padrão; aceito
