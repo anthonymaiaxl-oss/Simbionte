@@ -2605,3 +2605,87 @@ html.lenis body {
      e-mail continua visivel dentro do menu. */
   .conta__quem { display: none; }
 }
+
+/* ===============================================================
+   A DOBRA COMO BORDO DE LENTE
+   O corte entre a Hero e o painel era uma linha morta. Aqui ele vira o
+   lugar onde a luz atravessa — desenho tirado do oficio de quem vai usar
+   isto, uma otica.
+   =============================================================== */
+.dobra {
+  position: relative;
+  height: 90px;
+  margin-top: -1.5rem;
+  margin-bottom: -0.5rem;
+  pointer-events: none;
+  /* Recorta o brilho que passa: ele corre alem da tela e nao pode criar
+     rolagem lateral. `clip` e nao `hidden` para nao virar container de
+     rolagem. */
+  overflow-x: clip;
+  /* Acima do fundo da Hero, abaixo do conteudo que tem texto. */
+  z-index: 1;
+}
+
+.dobra__arco {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* O brilho: uma faixa estreita e inclinada que percorre o bordo.
+   Inclinada de proposito — reflexo em vidro curvo nunca e uma coluna
+   reta. */
+.dobra__brilho {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -30%;
+  width: 26%;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    color-mix(in srgb, var(--color-pulso) 16%, transparent) 38%,
+    color-mix(in srgb, var(--color-pulso) 34%, transparent) 50%,
+    color-mix(in srgb, var(--color-pulso) 16%, transparent) 62%,
+    transparent 100%
+  );
+  filter: blur(14px);
+  will-change: transform;
+  /* Lento de proposito: 13s. Rapido viraria varredura de scanner, que e
+     outro assunto e chama atencao demais para uma dobra. */
+  animation: correr-na-lente 13s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+@keyframes correr-na-lente {
+  0%   { transform: translateX(0); opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { transform: translateX(500%); opacity: 0; }
+}
+
+/* O painel comeca com o mesmo verde da dobra se dissolvendo para baixo,
+   entao a passagem de uma secao para a outra deixa de ter borda. */
+.painel::before {
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-simbionte) 9%, transparent) 0%,
+      transparent 22%
+    ),
+    radial-gradient(
+      72% 54% at 50% 0%,
+      rgba(22, 163, 74, 0.1) 0%,
+      transparent 68%
+    );
+}
+
+@media (max-width: 640px) {
+  .dobra { height: 62px; margin-top: -1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* O arco fica; so o brilho para. A dobra continua desenhada. */
+  .dobra__brilho { animation: none; opacity: 0.35; transform: translateX(180%); }
+}

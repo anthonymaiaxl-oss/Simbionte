@@ -2,6 +2,7 @@ import { sair } from "@/app/acoes-auth";
 import { buscarPainel } from "@/lib/painel-servidor";
 import { lerSessao } from "@/lib/sessao";
 import { ContaUsuario } from "@/components/conta-usuario";
+import { DobraLente } from "@/components/dobra-lente";
 import { ChatSimbionte } from "@/components/chat-simbionte";
 import { FundoHero } from "@/components/fundo-hero";
 import { MovimentoHero } from "@/components/movimento-hero";
@@ -94,6 +95,7 @@ export default async function Home() {
           </div>
         </section>
 
+        <DobraLente />
         <Painel inicial={dados} />
       </main>
 

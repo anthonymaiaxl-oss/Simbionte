@@ -98,11 +98,18 @@ export function Painel({ inicial }: { inicial: DadosPainel }) {
     };
   }, [aba]);
   const [dados, setDados] = useState(inicial);
-  const [lendo, setLendo] = useState(false);
+  /**
+   * Trava contra leitura sobreposta.
+   *
+   * Virou ref e nao estado porque nada mais na tela mostra 'Atualizando'
+   * — o botao saiu. Estado aqui provocaria render sem ninguem olhar.
+   */
+  const lendo = useRef(false);
   const [falhaAoLer, setFalhaAoLer] = useState<string | null>(null);
 
   const atualizar = async () => {
-    setLendo(true);
+    if (lendo.current) return;
+    lendo.current = true;
     setFalhaAoLer(null);
     try {
       const r = await fetch("/api/painel", { cache: "no-store" });
@@ -117,19 +124,35 @@ export function Painel({ inicial }: { inicial: DadosPainel }) {
     } catch (e) {
       setFalhaAoLer(e instanceof Error ? e.message : "Não consegui atualizar.");
     } finally {
-      setLendo(false);
+      lendo.current = false;
     }
   };
+
+  /**
+   * Releitura periodica.
+   *
+   * O botao "Atualizar" saiu da tela a pedido, e sem ele nao haveria
+   * como ver mensagem nova sem recarregar a pagina inteira.
+   *
+   * 45 segundos e um meio-termo pensado: rapido o bastante para quem
+   * esta olhando o painel durante um atendimento, e devagar o bastante
+   * para nao torrar a cota de execucoes do n8n — sao 80 leituras por
+   * hora com a aba aberta.
+   *
+   * So corre com a aba a vista: em segundo plano nao ha ninguem olhando,
+   * e gastar execucao para isso e desperdicio.
+   */
+  useEffect(() => {
+    const tique = window.setInterval(() => {
+      if (document.visibilityState === "visible") void atualizar();
+    }, 45_000);
+    return () => window.clearInterval(tique);
+  }, []);
 
   return (
     <section className="painel" aria-label="Painel de operação">
       <div className="painel__interno">
-        <BarraOrigem
-          dados={dados}
-          lendo={lendo}
-          falha={falhaAoLer}
-          aoAtualizar={atualizar}
-        />
+        <BarraOrigem dados={dados} falha={falhaAoLer} />
 
         <DockAbas itens={ABAS} atual={aba} aoTrocar={trocarAba} />
 
@@ -158,14 +181,10 @@ export function Painel({ inicial }: { inicial: DadosPainel }) {
  */
 function BarraOrigem({
   dados,
-  lendo,
   falha,
-  aoAtualizar,
 }: {
   dados: DadosPainel;
-  lendo: boolean;
   falha: string | null;
-  aoAtualizar: () => void;
 }) {
   const exemplo = dados.origem === "exemplo";
 
@@ -200,15 +219,6 @@ function BarraOrigem({
         </>
       )}
 
-      <button
-        type="button"
-        onClick={aoAtualizar}
-        disabled={lendo}
-        className="origem__atualizar"
-        title="Reler os dados do n8n"
-      >
-        {lendo ? "Atualizando…" : "Atualizar"}
-      </button>
     </div>
   );
 }
