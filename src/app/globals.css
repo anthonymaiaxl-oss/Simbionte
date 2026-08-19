@@ -2635,7 +2635,7 @@ html.lenis body {
   position: relative;
   /* Altura fixa: as frases sao absolutas, entao sem isto a faixa
      colapsaria e o painel subiria por cima. */
-  height: clamp(3.4rem, 7vw, 5.2rem);
+  height: clamp(2.8rem, 5.8vw, 4.2rem);
   /* `clip` e nao `hidden`: nao pode virar container de rolagem, senao o
      Lenis e o ScrollTrigger passam a brigar com ele. */
   overflow-x: clip;
@@ -2660,7 +2660,9 @@ html.lenis body {
      O espacamento volta a ser levemente positivo: caixa alta apertada
      embola as hastes e para de ler a distancia. */
   font-family: var(--fonte-archivo), ui-sans-serif, system-ui, sans-serif;
-  font-size: clamp(1.6rem, 4.4vw, 3.2rem);
+  /* ~18% menor que a versao anterior (era 1.6/4.4vw/3.2): estava
+     ocupando espaco demais para o papel de pano de fundo. */
+  font-size: clamp(1.3rem, 3.6vw, 2.6rem);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.01em;
