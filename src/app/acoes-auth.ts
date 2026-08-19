@@ -61,7 +61,11 @@ export async function entrar(
   if (configurado()) {
     try {
       const bruto = await chamarN8N<UsuarioN8N | UsuarioN8N[]>(
-        `usuario?email=${encodeURIComponent(email)}`,
+        // `painel/usuario` e nao `usuario`: o fluxo do WhatsApp ja ocupa o
+        // caminho `usuario` no n8n, e dois webhooks nao podem atender o
+        // mesmo endereco. Mudar aqui evitou ter que mexer no fluxo que ja
+        // estava funcionando.
+        `painel/usuario?email=${encodeURIComponent(email)}`,
       );
       // O n8n devolve lista quando a busca traz linhas, e objeto quando o
       // próprio fluxo já separa a primeira. Os dois casos servem.
