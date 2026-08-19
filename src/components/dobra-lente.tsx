@@ -1,63 +1,64 @@
 /**
- * A dobra entre a Hero e o painel, tratada como a borda de uma lente.
+ * A passagem entre a Hero e o painel.
  *
- * O corte seco entre as duas seções era o que incomodava: a Hero termina,
- * o painel começa, e no meio ficava uma linha morta.
+ * O problema real era cor, não desenho: o verde do painel começava de
+ * uma vez na borda de cima, e o encontro com o preto da Hero virava uma
+ * linha visível. Nenhum enfeite sobre a linha resolvia isso — a primeira
+ * tentativa foi um arco de luz, e ele só chamou atenção para o defeito.
  *
- * Aqui essa linha vira o lugar onde a luz atravessa. O desenho vem do
- * ofício de quem vai usar isto — uma ótica: um arco bem achatado, como o
- * bordo de uma lente vista de perfil, e um brilho que percorre esse bordo
- * devagar, do jeito que a luz corre na curvatura do vidro.
+ * A correção mora no CSS, em `.painel::before`: a mudança de cor passou
+ * a acontecer ao longo de ~360px em vez de num ponto. Sem borda, não há
+ * o que disfarçar.
  *
- * Componente de servidor, sem JavaScript: é SVG e CSS. A animação é só
- * transform e opacity, então não custa layout.
+ * O que ficou aqui é só o que o produto é: quatro marcas do WhatsApp
+ * atravessando devagar, no verde da marca, bem apagadas. É o assunto da
+ * página passando pelo fundo, não um efeito genérico.
+ *
+ * Componente de servidor: SVG e CSS, zero JavaScript.
  */
+
+/** Glifo do WhatsApp. */
+const CAMINHO_ZAP =
+  "M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z";
+
+/**
+ * Quatro marcas, nunca em fila.
+ *
+ * Alturas, tamanhos e tempos diferentes de propósito: quatro coisas
+ * iguais atravessando juntas leem como carrossel. Desencontradas, leem
+ * como movimento de fundo — que é o que se quer aqui.
+ *
+ * Os atrasos são negativos para as marcas já estarem no meio do caminho
+ * quando a página abre, em vez de a faixa nascer vazia.
+ */
+const MARCAS = [
+  { topo: "18%", tamanho: 26, duracao: 34, atraso: -2, opacidade: 0.1 },
+  { topo: "58%", tamanho: 17, duracao: 46, atraso: -19, opacidade: 0.07 },
+  { topo: "34%", tamanho: 34, duracao: 40, atraso: -31, opacidade: 0.12 },
+  { topo: "72%", tamanho: 21, duracao: 52, atraso: -8, opacidade: 0.06 },
+];
+
 export function DobraLente() {
   return (
-    <div className="dobra" aria-hidden="true">
-      {/* O arco. `vectorEffect` mantém a espessura da linha igual em
-          qualquer largura de tela — sem ele o traço engorda no desktop e
-          some no celular. */}
-      <svg
-        className="dobra__arco"
-        viewBox="0 0 1200 90"
-        preserveAspectRatio="none"
-        focusable="false"
-      >
-        <defs>
-          <linearGradient id="bordo-lente" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="var(--color-simbionte)" stopOpacity="0" />
-            <stop offset="28%" stopColor="var(--color-simbionte)" stopOpacity="0.55" />
-            <stop offset="50%" stopColor="var(--color-pulso)" stopOpacity="0.95" />
-            <stop offset="72%" stopColor="var(--color-simbionte)" stopOpacity="0.55" />
-            <stop offset="100%" stopColor="var(--color-simbionte)" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-
-        {/* Curva rasa: a lente é vista quase de lado, não de frente. */}
-        <path
-          d="M0 74 C 300 26, 900 26, 1200 74"
-          fill="none"
-          stroke="url(#bordo-lente)"
-          strokeWidth="1.25"
-          vectorEffect="non-scaling-stroke"
-        />
-
-        {/* Segunda linha, mais fraca e deslocada: dá espessura ao vidro
-            sem precisar desenhar o vidro. */}
-        <path
-          d="M0 80 C 300 34, 900 34, 1200 80"
-          fill="none"
-          stroke="url(#bordo-lente)"
-          strokeWidth="0.75"
-          strokeOpacity="0.4"
-          vectorEffect="non-scaling-stroke"
-        />
-      </svg>
-
-      {/* O brilho que atravessa. Fica por cima do arco e corre de uma
-          ponta à outra, como reflexo caminhando na curvatura. */}
-      <span className="dobra__brilho" />
+    <div className="passagem" aria-hidden="true">
+      {MARCAS.map((m, i) => (
+        <svg
+          key={i}
+          className="passagem__zap"
+          viewBox="0 0 24 24"
+          focusable="false"
+          style={{
+            top: m.topo,
+            width: m.tamanho,
+            height: m.tamanho,
+            opacity: m.opacidade,
+            animationDuration: `${m.duracao}s`,
+            animationDelay: `${m.atraso}s`,
+          }}
+        >
+          <path d={CAMINHO_ZAP} fill="currentColor" />
+        </svg>
+      ))}
     </div>
   );
 }
