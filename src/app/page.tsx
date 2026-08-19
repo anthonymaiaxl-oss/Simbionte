@@ -1,7 +1,8 @@
 import { sair } from "@/app/acoes-auth";
 import { buscarPainel } from "@/lib/painel-servidor";
+import { lerSessao } from "@/lib/sessao";
+import { ContaUsuario } from "@/components/conta-usuario";
 import { ChatSimbionte } from "@/components/chat-simbionte";
-import { FaixaEstado } from "@/components/faixa-estado";
 import { FundoHero } from "@/components/fundo-hero";
 import { MovimentoHero } from "@/components/movimento-hero";
 import { BrilhoPonteiro } from "@/components/brilho-ponteiro";
@@ -20,7 +21,8 @@ import { AnimatedText } from "@/components/ui/animated-text";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const dados = await buscarPainel();
+  // As duas leituras em paralelo: o topo nao precisa esperar o painel.
+  const [dados, sessao] = await Promise.all([buscarPainel(), lerSessao()]);
 
   return (
     <>
@@ -33,14 +35,22 @@ export default async function Home() {
           Simbionte
         </span>
 
-        <form action={sair}>
-          <button
-            type="submit"
-            className="h-11 cursor-pointer rounded-full border border-borda px-5 text-sm text-bruma transition-colors hover:border-falha/50 hover:text-marfim"
-          >
-            Sair
-          </button>
-        </form>
+        {sessao ? (
+          <ContaUsuario
+            email={sessao.email}
+            nome={sessao.nome}
+            empresa={sessao.empresa}
+          />
+        ) : (
+          <form action={sair}>
+            <button
+              type="submit"
+              className="h-11 cursor-pointer rounded-full border border-borda px-5 text-sm text-bruma transition-colors hover:border-falha/50 hover:text-marfim"
+            >
+              Sair
+            </button>
+          </form>
+        )}
       </header>
 
       <main>
@@ -84,7 +94,6 @@ export default async function Home() {
           </div>
         </section>
 
-        <FaixaEstado />
         <Painel inicial={dados} />
       </main>
 

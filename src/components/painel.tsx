@@ -169,26 +169,43 @@ function BarraOrigem({
 }) {
   const exemplo = dados.origem === "exemplo";
 
+  /**
+   * Em operação normal esta barra não aparece — ela só existe para avisar
+   * quando algo está errado.
+   *
+   * O aviso de "dados de exemplo" continua obrigatório: alguém olhando
+   * "2 pendentes" precisa saber se são dois clientes esperando de verdade
+   * ou um número de mentira. Esconder isso seria pior do que a barra.
+   */
+  const precisaAvisar = exemplo || Boolean(falha);
+
   return (
-    <div className="origem">
-      <span className={`origem__selo ${exemplo ? "origem__selo--exemplo" : ""}`}>
-        <span className="origem__ponto" aria-hidden="true" />
-        {exemplo ? "Dados de exemplo" : "Ao vivo pelo n8n"}
-      </span>
+    <div className={`origem ${precisaAvisar ? "" : "origem--limpa"}`}>
+      {precisaAvisar && (
+        <>
+          <span
+            className={`origem__selo ${exemplo ? "origem__selo--exemplo" : ""}`}
+          >
+            <span className="origem__ponto" aria-hidden="true" />
+            {exemplo ? "Dados de exemplo" : "Ao vivo pelo n8n"}
+          </span>
 
-      {exemplo && dados.aviso && (
-        <span className="origem__motivo" title={dados.aviso}>
-          {dados.aviso}
-        </span>
+          {exemplo && dados.aviso && (
+            <span className="origem__motivo" title={dados.aviso}>
+              {dados.aviso}
+            </span>
+          )}
+
+          {falha && <span className="origem__falha">{falha}</span>}
+        </>
       )}
-
-      {falha && <span className="origem__falha">{falha}</span>}
 
       <button
         type="button"
         onClick={aoAtualizar}
         disabled={lendo}
         className="origem__atualizar"
+        title="Reler os dados do n8n"
       >
         {lendo ? "Atualizando…" : "Atualizar"}
       </button>

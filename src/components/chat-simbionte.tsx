@@ -319,6 +319,9 @@ export function ChatSimbionte({ dados }: { dados?: DadosPainel }) {
         <div
           ref={fio}
           className="chat__fio"
+          /* Sem isto o Lenis captura a roda do mouse e rola a PAGINA em vez
+             do fio: mensagem longa ficava impossivel de ler. */
+          data-lenis-prevent
           role="log"
           aria-label="Conversa com o Simbionte"
         >

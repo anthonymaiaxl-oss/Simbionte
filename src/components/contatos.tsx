@@ -78,7 +78,7 @@ export function Contatos({ contatos }: { contatos: Contato[] }) {
           </button>
         </p>
       ) : (
-        <div className="tabela__caixa">
+        <div className="tabela__caixa" data-lenis-prevent>
           {/* A tabela rola dentro do próprio container: a página nunca
               rola de lado. */}
           <table className="tabela">

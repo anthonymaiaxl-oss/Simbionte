@@ -227,7 +227,7 @@ export function ConversaAberta({
         </span>
       </header>
 
-      <div className="thread" role="log" aria-label={`Conversa com ${conversa.nome}`}>
+      <div className="thread" data-lenis-prevent role="log" aria-label={`Conversa com ${conversa.nome}`}>
         {mensagens.map((m, i) => (
           <div
             key={m.id}

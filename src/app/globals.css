@@ -2419,3 +2419,189 @@ html.lenis body {
     display: none;
   }
 }
+
+/* Sem aviso para dar, a barra vira so o botao de atualizar, discreto e
+   encostado a direita. O que importa na tela sao as conversas. */
+.origem--limpa {
+  margin-bottom: 0.6rem;
+  min-height: 0;
+}
+
+.origem--limpa .origem__atualizar {
+  border-color: transparent;
+  font-size: 0.75rem;
+  opacity: 0.55;
+  transition: opacity 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.origem--limpa .origem__atualizar:hover:not(:disabled) {
+  opacity: 1;
+  border-color: var(--color-borda);
+}
+
+/* overscroll-behavior: chegando ao fim da area rolavel, a rolagem PARA ali
+   em vez de continuar na pagina atras. Junto com data-lenis-prevent nos
+   componentes, e o que faz ler mensagem longa funcionar. */
+.chat__fio,
+.thread,
+.tabela__caixa {
+  overscroll-behavior: contain;
+}
+
+/* ===============================================================
+   CONTA NO TOPO
+   Quem esta usando o painel. Antes ali havia so um "Sair" solto, e nada
+   dizia com qual conta a sessao estava aberta.
+   =============================================================== */
+.conta {
+  position: relative;
+}
+
+.conta__gatilho {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 44px;
+  padding: 0.3rem 0.7rem 0.3rem 0.35rem;
+  border: 1px solid var(--color-borda);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+
+.conta__gatilho:hover {
+  border-color: color-mix(in srgb, var(--color-simbionte) 55%, var(--color-borda));
+  background: color-mix(in srgb, var(--color-superficie-alta) 60%, transparent);
+}
+
+/* Iniciais em vez de foto: nao existe upload de avatar ainda, e um
+   circulo cinza vazio comunica menos que duas letras. */
+.conta__avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-simbionte) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-simbionte) 55%, transparent);
+  color: var(--color-pulso);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.conta__avatar--grande {
+  width: 44px;
+  height: 44px;
+  font-size: 0.9rem;
+}
+
+.conta__quem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.15;
+  max-width: 13rem;
+}
+
+.conta__nome,
+.conta__email,
+.conta__empresa {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.conta__nome {
+  font-size: 0.875rem;
+  color: var(--color-marfim);
+}
+
+.conta__email {
+  font-size: 0.8125rem;
+  color: var(--color-bruma);
+}
+
+.conta__empresa {
+  font-family: var(--fonte-space-mono), ui-monospace, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+  color: var(--color-bruma);
+  opacity: 0.85;
+}
+
+.conta__seta {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  color: var(--color-bruma);
+  transition: transform 200ms ease;
+}
+
+.conta__seta--aberta { transform: rotate(180deg); }
+
+/* z-index alto: o menu precisa passar por cima do robo e das marcas do
+   fundo da Hero, que vivem em camadas proprias. */
+.conta__menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 60;
+  min-width: 16rem;
+  border: 1px solid var(--color-borda);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--color-superficie) 94%, transparent);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.85);
+  padding: 0.85rem;
+  animation: entrar-linha 200ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.conta__cabeca {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.6rem;
+  border-bottom: 1px solid var(--color-borda);
+}
+
+.conta__detalhe {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.conta__sair {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--color-borda);
+  border-radius: 10px;
+  font-size: 0.875rem;
+  color: var(--color-bruma);
+  cursor: pointer;
+  transition: border-color 180ms ease, color 180ms ease, background-color 180ms ease;
+}
+
+.conta__sair:hover {
+  border-color: color-mix(in srgb, var(--color-falha) 55%, transparent);
+  background: color-mix(in srgb, var(--color-falha) 10%, transparent);
+  color: var(--color-marfim);
+}
+
+.conta__nota {
+  margin-top: 0.6rem;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: var(--color-bruma);
+  opacity: 0.8;
+}
+
+@media (max-width: 640px) {
+  /* No celular o nome sai e fica so o circulo: o cabecalho e estreito e o
+     e-mail continua visivel dentro do menu. */
+  .conta__quem { display: none; }
+}
