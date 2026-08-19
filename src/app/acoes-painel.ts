@@ -78,11 +78,39 @@ export async function salvarConfiguracao(
  * Esta devolve texto em vez de só ok/erro, porque a resposta é o produto
  * da chamada.
  */
+/** Anexo do chat, ja convertido para texto em base64 pelo navegador. */
+export type AnexoEnviado = {
+  nome: string;
+  mime: string;
+  /** Conteudo em base64, sem o prefixo `data:`. */
+  dados: string;
+};
+
+/**
+ * Teto do que sobe junto com a pergunta.
+ *
+ * Base64 engorda o arquivo em cerca de um terco, e o webhook do n8n tem
+ * limite de corpo. Barrar aqui, com aviso claro, e melhor do que deixar
+ * o envio falhar la com um erro que nao explica nada.
+ */
+const LIMITE_ANEXO = 4 * 1024 * 1024;
+
 export async function perguntarAoSimbionte(
   pergunta: string,
+  anexos: AnexoEnviado[] = [],
 ): Promise<{ ok: true; resposta: string } | { ok: false; erro: string }> {
   const limpa = pergunta.trim();
-  if (!limpa) return { ok: false, erro: "Pergunta vazia." };
+  if (!limpa && anexos.length === 0) {
+    return { ok: false, erro: "Pergunta vazia." };
+  }
+
+  const grande = anexos.find((a) => a.dados.length > LIMITE_ANEXO);
+  if (grande) {
+    return {
+      ok: false,
+      erro: `"${grande.nome}" é grande demais para enviar. O limite é de 3 MB por arquivo.`,
+    };
+  }
 
   if (!configurado()) {
     return {
@@ -96,7 +124,12 @@ export async function perguntarAoSimbionte(
       // `painel/perguntar`: os caminhos do painel ficam todos sob `painel/`
       // para nao disputar endereco com o fluxo do WhatsApp.
       "painel/perguntar",
-      { metodo: "POST", corpo: { pergunta: limpa, mensagem: limpa } },
+      {
+        metodo: "POST",
+        // `anexos` leva no maximo um item hoje: o fluxo do n8n transcreve
+        // audio ou descreve imagem, um por vez, e junta ao texto.
+        corpo: { pergunta: limpa, mensagem: limpa, anexos },
+      },
     );
     // `output` é o nome que o nó de Agente do n8n usa por padrão; aceito
     // os dois para não obrigar a renomear campo no fluxo.

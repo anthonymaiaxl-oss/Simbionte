@@ -43,7 +43,32 @@ type Anexo = {
   /** Presente só em áudio gravado: é o que o <audio> toca. */
   url?: string;
   ehAudio?: boolean;
+  /**
+   * O conteúdo em si. Antes o anexo guardava só o nome, e por isso o
+   * arquivo nunca saía do navegador — a IA recebia a palavra "orçamento.pdf"
+   * e nada mais. É este blob que vai para o n8n transcrever ou descrever.
+   */
+  blob?: Blob;
+  mime?: string;
 };
+
+/**
+ * Converte o arquivo para base64, sem o prefixo `data:`.
+ *
+ * O n8n recebe texto no corpo do webhook e reconstrói o binário do outro
+ * lado; mandar assim evita montar um envio multipart só para isso.
+ */
+function paraBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const leitor = new FileReader();
+    leitor.onerror = () => reject(new Error("não consegui ler o arquivo"));
+    leitor.onload = () => {
+      const texto = String(leitor.result);
+      resolve(texto.slice(texto.indexOf(",") + 1));
+    };
+    leitor.readAsDataURL(blob);
+  });
+}
 
 type MensagemChat = {
   id: string;
@@ -185,6 +210,8 @@ export function ChatSimbionte({ dados }: { dados?: DadosPainel }) {
             tamanho: blob.size,
             url: URL.createObjectURL(blob),
             ehAudio: true,
+            blob,
+            mime: rec.mimeType || "audio/webm",
           },
         ]);
         // Sem isto o indicador de gravação do navegador fica aceso e a
@@ -235,19 +262,29 @@ export function ChatSimbionte({ dados }: { dados?: DadosPainel }) {
     // funciona hoje e passa a valer de verdade quando o fluxo subir.
     let resposta: string;
     try {
+      // Só o que tem conteúdo sobe. Anexo sem blob é de uma sessão antiga
+      // restaurada, e mandar o nome sozinho não ajuda a IA em nada.
+      const paraEnviar = await Promise.all(
+        enviados
+          .filter((a) => a.blob)
+          .map(async (a) => ({
+            nome: a.nome,
+            mime: a.mime ?? a.blob!.type ?? "application/octet-stream",
+            dados: await paraBase64(a.blob!),
+          })),
+      );
+
       const r = await perguntarAoSimbionte(
         [
           conteudo,
           analisar ? "[modo: analisar]" : "",
           buscar ? "[modo: buscar no histórico]" : "",
-          enviados.length
-            ? `[anexos: ${enviados.map((a) => a.nome).join(", ")}]`
-            : "",
         ]
           .filter(Boolean)
           .join(" "),
+        paraEnviar,
       );
-      resposta = r.ok ? r.resposta : respostaLocal(conteudo, dados);
+      resposta = r.ok ? r.resposta : r.erro || respostaLocal(conteudo, dados);
     } catch {
       resposta = respostaLocal(conteudo, dados);
     }
@@ -387,6 +424,8 @@ export function ChatSimbionte({ dados }: { dados?: DadosPainel }) {
                 id: `f-${proximoId.current++}`,
                 nome: f.name,
                 tamanho: f.size,
+                blob: f,
+                mime: f.type || "application/octet-stream",
               }));
               if (novos.length) setAnexos((a) => [...a, ...novos]);
               // Limpa para o mesmo arquivo poder ser escolhido de novo.
