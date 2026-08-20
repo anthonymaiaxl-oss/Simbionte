@@ -2093,10 +2093,14 @@ html.lenis body {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  /* Sem teto proprio: quem manda na altura e `.chat__fio-area`, para o
-     botao de ampliar ter um lugar so para mexer. */
-  max-height: 100%;
+  /* O teto mora AQUI, no elemento que rola.
+     Ja tentei coloca-lo no involucro e dar `height: 100%` ao fio: altura
+     em porcentagem contra pai de altura automatica nao limita nada, entao
+     o `overflow` nunca entrava e as mensagens vazavam para fora do balao,
+     passando por baixo da barra de escrever. */
+  max-height: 13.5rem;
   overflow-y: auto;
+  transition: max-height 320ms cubic-bezier(0.22, 1, 0.36, 1);
   padding: 0.9rem 0.25rem;
   margin-bottom: 0.6rem;
   text-align: left;
@@ -2664,21 +2668,16 @@ html.lenis body {
    dentro. Sem esse teto, conversa longa empurra o painel inteiro para
    baixo e tira o robo da tela.
    =============================================================== */
+/* O involucro nao mede nada: existe so para o botao ter onde se ancorar.
+   Quem tem teto e rola e o fio la dentro. */
 .chat__fio-area {
   position: relative;
-  /* ~4 mensagens curtas. A transicao e em max-height porque a altura real
-     depende do conteudo — height fixo cortaria conversa curta. */
-  max-height: 13.5rem;
-  transition: max-height 320ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.chat__fio-area--alto {
-  /* Teto alto, mas ainda um teto: a pagina nao pode crescer sem fim. */
+/* Ampliado: teto alto, mas ainda um teto — a pagina nao pode crescer sem
+   fim. */
+.chat__fio-area--alto .chat__fio {
   max-height: min(62vh, 40rem);
-}
-
-.chat__fio-area .chat__fio {
-  height: 100%;
 }
 
 /* O botao mora no canto de cima, dentro do balao. z-index acima do fio
@@ -2715,5 +2714,5 @@ html.lenis body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .chat__fio-area { transition: none; }
+  .chat__fio { transition: none; }
 }

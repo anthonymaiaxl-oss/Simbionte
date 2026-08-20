@@ -176,9 +176,11 @@ export function ChatSimbionte({ dados }: { dados?: DadosPainel }) {
   // Clique fora fecha, desde que não haja rascunho para perder.
   useEffect(() => {
     const aoClicar = (e: MouseEvent) => {
-      const dentro =
-        caixa.current?.contains(e.target as Node) ||
-        fio.current?.contains(e.target as Node);
+      // `closest('.chat')` cobre o balao inteiro: caixa, fio e o botao de
+      // ampliar. Antes a checagem olhava so a caixa e o fio, e o botao
+      // ficava de fora — clicar nele contava como "clique fora" e fechava
+      // a ampliacao no mesmo instante em que ela abria.
+      const dentro = (e.target as HTMLElement)?.closest?.(".chat");
       if (dentro) return;
       if (!texto) setAtivo(false);
       // Clicar fora tambem devolve o fio ao tamanho pequeno: ampliado e um
