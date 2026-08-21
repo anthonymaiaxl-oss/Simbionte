@@ -2,9 +2,11 @@ import "server-only";
 
 import { chamarN8N, configurado, ErroN8N, faltando } from "@/lib/n8n";
 import {
+  AGENDAMENTOS,
   CONFIGURACAO,
   PAINEL_EXEMPLO,
   type Configuracao,
+  type Agendamento,
   type Contato,
   type Conversa,
   type DadosPainel,
@@ -101,6 +103,44 @@ function paraConversa(bruto: unknown, i: number): Conversa {
   };
 }
 
+/**
+ * Um agendamento vindo do n8n.
+ *
+ * `tratamentos` chega como lista ou como texto separado por vírgula — o
+ * fluxo pode montar de qualquer um dos dois jeitos, e obrigar um formato
+ * só seria criar armadilha para o meu eu do futuro.
+ */
+function paraAgendamento(bruto: unknown, i: number): Agendamento {
+  const a = (bruto ?? {}) as Record<string, unknown>;
+
+  const tratamentos = Array.isArray(a.tratamentos)
+    ? a.tratamentos.map((t) => texto(t)).filter(Boolean)
+    : texto(a.tratamentos)
+        .split(/[,;]/)
+        .map((t) => t.trim())
+        .filter(Boolean);
+
+  const status = texto(a.status).toLowerCase().trim();
+
+  return {
+    id: texto(a.id, `ag-${i}`),
+    nome: texto(a.nome, "Sem nome"),
+    telefone: texto(a.telefone),
+    lente: texto(a.lente),
+    tratamentos,
+    preco: texto(a.preco),
+    quando: texto(a.quando),
+    grau: texto(a.grau),
+    receitaUrl: texto(a.receitaUrl) || undefined,
+    // Qualquer coisa fora dos três conhecidos vira "aguardando": é o
+    // estado que pede atenção, e errar para o lado de pedir conferência é
+    // melhor do que marcar como conferido algo que ninguém olhou.
+    status:
+      status === "conferido" || status === "ajustado" ? status : "aguardando",
+    observacao: texto(a.observacao) || undefined,
+  };
+}
+
 function paraContato(bruto: unknown, i: number): Contato {
   const c = (bruto ?? {}) as Record<string, unknown>;
   return {
@@ -153,16 +193,28 @@ export async function buscarPainel(): Promise<DadosPainel> {
     return {
       ...PAINEL_EXEMPLO,
       origem: "exemplo",
+      agendaExemplo: true,
       aviso: `Falta configurar: ${faltando().join(", ")}.`,
     };
   }
 
   try {
     const bruto = await chamarN8N<Record<string, unknown>>("painel");
+
+    // Campo ausente e campo vazio são coisas diferentes. Ausente = o
+    // fluxo do n8n ainda não devolve agenda, e a tela mostra exemplo
+    // avisando que é exemplo. Vazio = o fluxo respondeu e não há
+    // agendamento nenhum, e aí a tela tem que dizer isso, não inventar.
+    const agendaVeio = bruto.agendamentos !== undefined;
+
     return {
       conversas: lista(bruto.conversas).map(paraConversa),
       numeros: paraNumeros(bruto.numeros),
       contatos: lista(bruto.contatos).map(paraContato),
+      agendamentos: agendaVeio
+        ? lista(bruto.agendamentos).map(paraAgendamento)
+        : AGENDAMENTOS,
+      agendaExemplo: !agendaVeio,
       configuracao: paraConfiguracao(bruto.configuracao),
       origem: "n8n",
     };
@@ -171,6 +223,11 @@ export async function buscarPainel(): Promise<DadosPainel> {
     const motivo =
       e instanceof ErroN8N ? e.message : "Falha desconhecida ao ler o n8n.";
     console.error("[painel] caindo para dados de exemplo:", motivo);
-    return { ...PAINEL_EXEMPLO, origem: "exemplo", aviso: motivo };
+    return {
+      ...PAINEL_EXEMPLO,
+      origem: "exemplo",
+      agendaExemplo: true,
+      aviso: motivo,
+    };
   }
 }

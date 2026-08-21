@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useReducedMotion } from "motion/react";
 import { alternarPausa } from "@/app/acoes-painel";
+import { Agendamentos } from "@/components/agendamentos";
 import { Agente } from "@/components/agente";
 import { Chips } from "@/components/chips";
 import { Contatos } from "@/components/contatos";
@@ -35,13 +36,14 @@ import {
  * quem está esperando resposta humana vem antes de quem já foi atendido.
  */
 
-type Aba = "conversas" | "numeros" | "contatos" | "agente";
+type Aba = "conversas" | "numeros" | "agendamentos" | "contatos" | "agente";
 
 /* O id continua "numeros" — é a chave do aria-controls. Só o rótulo
    mudou para "Painel". */
 const ABAS: { id: Aba; rotulo: string }[] = [
   { id: "conversas", rotulo: "Conversas" },
   { id: "numeros", rotulo: "Painel" },
+  { id: "agendamentos", rotulo: "Agenda" },
   { id: "contatos", rotulo: "Contatos" },
   { id: "agente", rotulo: "Agente" },
 ];
@@ -164,6 +166,12 @@ export function Painel({ inicial }: { inicial: DadosPainel }) {
             <Conversas conversas={dados.conversas} aoMudar={atualizar} />
           )}
           {aba === "numeros" && <Numeros numeros={dados.numeros} />}
+          {aba === "agendamentos" && (
+            <Agendamentos
+              agendamentos={dados.agendamentos}
+              exemplo={dados.agendaExemplo}
+            />
+          )}
           {aba === "contatos" && <Contatos contatos={dados.contatos} />}
           {aba === "agente" && <Agente configuracao={dados.configuracao} />}
         </div>

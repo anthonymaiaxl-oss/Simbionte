@@ -288,6 +288,41 @@ export const CONFIGURACAO: Configuracao = {
 };
 
 /**
+ * Um agendamento fechado pela IA, esperando a conferência na loja.
+ *
+ * É o fim do caminho do atendimento: o cliente mandou a receita, a IA leu,
+ * ele confirmou, escolheu a lente e marcou o horário. O que falta é
+ * humano — medidas, armação e a conferência de que a lente serve mesmo.
+ */
+export type Agendamento = {
+  id: string;
+  nome: string;
+  telefone: string;
+
+  /** Marca e linha, como aparece no catálogo: "Hoya Hilux". */
+  lente: string;
+  /** Tratamentos por extenso, não em código: "BlueControl", "Antirreflexo". */
+  tratamentos: string[];
+  preco: string;
+
+  quando: string;
+  /** O que a IA leu da receita, resumido: "OD -2,00 · OE -1,75". */
+  grau: string;
+  /**
+   * Link do arquivo da receita.
+   *
+   * Vazio quando a foto ainda não foi arquivada — e nesse caso a tela diz
+   * isso, em vez de mostrar um botão que não leva a lugar nenhum.
+   */
+  receitaUrl?: string;
+
+  /** aguardando | conferido | ajustado */
+  status: "aguardando" | "conferido" | "ajustado";
+  /** Preenchido quando a conferência mudou alguma coisa. */
+  observacao?: string;
+};
+
+/**
  * O painel inteiro, do jeito que a tela consome.
  *
  * Mora aqui e não no módulo de servidor de propósito: os componentes de
@@ -299,6 +334,16 @@ export type DadosPainel = {
   conversas: Conversa[];
   numeros: Numeros;
   contatos: Contato[];
+  agendamentos: Agendamento[];
+  /**
+   * Verdadeiro quando o n8n ainda não devolve `agendamentos` e a tela
+   * está mostrando os exemplos.
+   *
+   * Existe para a tela poder DIZER isso. Dado falso sem aviso é pior do
+   * que tela vazia: a pessoa confere um pedido que não existe, ou
+   * confia que a lista está completa quando ela nem chegou.
+   */
+  agendaExemplo?: boolean;
   configuracao: Configuracao;
   /** De onde veio o dado: a tela avisa quando está em exemplo. */
   origem: "n8n" | "exemplo";
@@ -307,10 +352,58 @@ export type DadosPainel = {
 };
 
 /** O painel de exemplo, para quando o n8n não estiver configurado. */
+/**
+ * Agendamentos de exemplo.
+ *
+ * Existem para a aba poder ser construída e testada antes de o fluxo do
+ * n8n existir. Os três casos cobrem o que a tela precisa saber lidar:
+ * um normal, um com a receita ainda não arquivada, e um já conferido com
+ * ajuste feito pela colaboradora.
+ */
+export const AGENDAMENTOS: Agendamento[] = [
+  {
+    id: "a1",
+    nome: "Marina Fontes",
+    telefone: "+55 11 98812-4471",
+    lente: "Hoya Hilux 1.60",
+    tratamentos: ["Antirreflexo", "BlueControl"],
+    preco: "R$ 780,00",
+    quando: "Quarta, 20/08 às 09:00",
+    grau: "OD -2,00 -0,75 180° · OE -1,75 -0,50 175°",
+    receitaUrl: "#",
+    status: "aguardando",
+  },
+  {
+    id: "a2",
+    nome: "Carlos Meireles",
+    telefone: "+55 65 99999-0000",
+    lente: "Gradual Multifocal 1.67",
+    tratamentos: ["Antirreflexo", "Fotossensível"],
+    preco: "R$ 1.420,00",
+    quando: "Quinta, 21/08 às 14:30",
+    grau: "OD +1,50 · OE +1,25 · ADD +2,00",
+    status: "aguardando",
+  },
+  {
+    id: "a3",
+    nome: "Ateliê Nove Casas",
+    telefone: "+55 48 99127-3364",
+    lente: "Hoya Visão Simples 1.59",
+    tratamentos: ["Antirrisco"],
+    preco: "R$ 460,00",
+    quando: "Ontem às 16:00",
+    grau: "OD -0,75 · OE -1,00",
+    receitaUrl: "#",
+    status: "ajustado",
+    observacao: "Índice trocado para 1.67 na conferência — grau maior que o lido.",
+  },
+];
+
 export const PAINEL_EXEMPLO: DadosPainel = {
   conversas: CONVERSAS,
   numeros: NUMEROS,
   contatos: CONTATOS,
+  agendamentos: AGENDAMENTOS,
   configuracao: CONFIGURACAO,
   origem: "exemplo",
 };
