@@ -94,6 +94,21 @@ Chega como `?empresaId=teste-123`. Uma chamada só traz tudo. Responda:
       "conversas": 4, "etiquetas": ["cliente", "orçamento"]
     }
   ],
+  "agendamentos": [
+    {
+      "id": "ag-001",
+      "nome": "Marina Fontes",
+      "telefone": "+55 66 99612-4471",
+      "lente": "Hoya Hilux 1.60",
+      "tratamentos": ["Antirreflexo", "BlueControl"],
+      "preco": "R$ 780,00",
+      "quando": "Quarta, 20/08 às 09:00",
+      "grau": "OD -2,00 -0,75 180° · OE -1,75 -0,50 175°",
+      "receitaUrl": "https://drive.google.com/file/d/.../view",
+      "status": "aguardando",
+      "observacao": ""
+    }
+  ],
   "configuracao": {
     "nomeAgente": "Simbionte",
     "boasVindas": "Oi! Sou o assistente da...",
@@ -224,6 +239,45 @@ Todas com `empresaId` na primeira coluna, e todo filtro passando por ela
 `criadoEm`
 
 **config**: uma linha por `empresaId`
+
+**lentes** (catálogo): `clinic_id`, `marca`, `linha`, `nome`, `tipo`,
+`material`, `indice`, `esf_min/max`, `cil_min/max`, `add_min/max`,
+`tratamentos`, `preco`, `prazo_dias`, `codigo_fabricante`,
+`explicacao`, `para_quem`, `ativa`
+
+`explicacao` e `para_quem` são escritos por quem entende da loja. A IA
+lê e repete — ela não inventa explicação sobre a vista de ninguém.
+
+**receitas**: além do grau, guarda `confianca`, `precisa_humano`,
+`motivo_humano`, `confirmada_pelo_cliente`, `foto_id` e `texto_bruto`.
+Esses seis existem só por causa da segurança: se o cliente reclamar da
+lente depois, dá para ver o que a IA leu e o que ele confirmou, em vez
+de virar a palavra de um contra a do outro.
+
+**pedidos**: `clinic_id`, `telefone`, `nome_cliente`, `receita_id`,
+`lente_id`, `lente_nome`, `tratamentos`, `preco`, `quando`, `grau`,
+`receita_url`, `status`, `agendamento_id`, `conferido_por`,
+`observacao`
+
+O pedido repete lente, preço, grau e horário de propósito. Ele é o
+retrato do que foi combinado naquele dia: se o catálogo mudar de preço
+em outubro, o pedido de agosto tem que continuar mostrando o que o
+cliente aceitou. E o painel lê uma tabela só.
+
+`status` no banco é `aguardando_conferencia` | `confirmado` |
+`ajustado` | `cancelado`. Na tela vira `aguardando` | `conferido` |
+`ajustado`; cancelado não aparece.
+
+### Cuidado: nó de leitura roda uma vez por item que chega
+
+No n8n, um nó executa uma vez para CADA item da entrada. Numa corrente
+`Mensagens → Fila → Leads → Pedidos`, o nó de Leads rodava 134 vezes
+(uma por mensagem) e devolvia 1608 contatos onde existem 12.
+
+Toda leitura de tabela que não depende do item que chega precisa de
+**`executeOnce` ligado** (Configurações do nó → "Executar apenas uma
+vez"). O `Montar Painel` ainda tira duplicata pelo `id` da linha, para o
+caso de alguém reconectar a corrente depois.
 
 ---
 
