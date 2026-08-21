@@ -279,6 +279,20 @@ Toda leitura de tabela que não depende do item que chega precisa de
 vez"). O `Montar Painel` ainda tira duplicata pelo `id` da linha, para o
 caso de alguém reconectar a corrente depois.
 
+### Contatos: uma linha por telefone
+
+A tabela `leads` pode ter várias linhas para o mesmo número — o CSV do
+n8n antigo veio assim, e foi importado duas vezes. O `Montar Painel`
+agrupa por telefone antes de montar a aba de Contatos.
+
+Isso não é só remendo: no WhatsApp o número **é** a identidade, e a aba
+de Conversas já agrupa por ele. Duas linhas para a mesma pessoa nunca
+ajudam quem atende.
+
+Quando o mesmo número tem nomes diferentes, fica o mais recente que
+identifica alguém — "Ideglan" ganha de "Teste" e de ".". Se a pessoa
+disse o nome ontem, é esse que a loja deve ver.
+
 ---
 
 ## 5. Testar
